@@ -8,8 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Groceries">
-<link rel="manifest" href="./manifest.json">
+<link rel="manifest" id="manifestLink">
 <style>
+  /* ── THEMES ── */
   :root {
     --bg: #F7F5F0;
     --surface: #FFFFFF;
@@ -17,33 +18,82 @@
     --text: #1A1A1A;
     --muted: #888;
     --accent: #2E7D32;
+    --accent-light: #e8f5e9;
     --danger: #C62828;
-    --input-bg: #FFFFFF;
     --shadow: 0 2px 12px rgba(0,0,0,0.08);
     --radius: 14px;
-    --section-colors: ;
   }
-
+  [data-theme="forest"] {
+    --bg: #EEF2EC;
+    --surface: #F8FAF7;
+    --border: #C8D5C2;
+    --text: #1C2B1A;
+    --muted: #6B856A;
+    --accent: #3A6B35;
+    --accent-light: #dceedd;
+    --danger: #B74040;
+    --shadow: 0 2px 12px rgba(30,60,20,0.10);
+  }
+  [data-theme="earth"] {
+    --bg: #F2EDE6;
+    --surface: #FAF7F3;
+    --border: #D9CDBF;
+    --text: #2B1F14;
+    --muted: #8C7A6A;
+    --accent: #8B5E3C;
+    --accent-light: #f3e9df;
+    --danger: #B74040;
+    --shadow: 0 2px 12px rgba(80,50,20,0.10);
+  }
+  [data-theme="stone"] {
+    --bg: #EDEAE5;
+    --surface: #F6F4F1;
+    --border: #CEC8C0;
+    --text: #1E1C19;
+    --muted: #7A756D;
+    --accent: #6B6254;
+    --accent-light: #eae7e1;
+    --danger: #B74040;
+    --shadow: 0 2px 12px rgba(50,45,35,0.10);
+  }
+  [data-theme="dark"] {
+    --bg: #141414;
+    --surface: #1F1F1F;
+    --border: #2E2E2E;
+    --text: #E8E8E8;
+    --muted: #666;
+    --accent: #5aad60;
+    --accent-light: #1a2e1c;
+    --danger: #e05c5c;
+    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  [data-theme="dark-earth"] {
+    --bg: #181410;
+    --surface: #221D18;
+    --border: #332B22;
+    --text: #E8DDD0;
+    --muted: #7A6A58;
+    --accent: #C4885A;
+    --accent-light: #2b1f13;
+    --danger: #e05c5c;
+    --shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100dvh;
-    padding-bottom: 120px;
+    background: var(--bg); color: var(--text);
+    min-height: 100dvh; padding-bottom: 130px;
   }
 
-  /* ── HEADER ── */
+  /* HEADER */
   header {
     position: sticky; top: 0; z-index: 100;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
+    background: var(--surface); border-bottom: 1px solid var(--border);
     padding: 14px 16px 10px;
     display: flex; align-items: center; justify-content: space-between;
   }
   header h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.3px; }
-  header .header-actions { display: flex; gap: 8px; }
+  .header-actions { display: flex; gap: 8px; }
   .icon-btn {
     background: none; border: none; font-size: 1.3rem; cursor: pointer;
     padding: 4px 6px; border-radius: 8px; color: var(--text);
@@ -51,12 +101,10 @@
   }
   .icon-btn:active { background: var(--border); }
 
-  /* ── TABS ── */
+  /* TABS */
   .tabs {
-    display: flex; gap: 0;
-    border-bottom: 2px solid var(--border);
-    background: var(--surface);
-    padding: 0 16px;
+    display: flex; border-bottom: 2px solid var(--border);
+    background: var(--surface); padding: 0 16px;
   }
   .tab {
     flex: 1; padding: 10px 4px; font-size: 0.85rem; font-weight: 600;
@@ -67,29 +115,22 @@
   }
   .tab.active { color: var(--accent); border-color: var(--accent); }
 
-  /* ── MAIN CONTENT ── */
   main { padding: 12px 14px; }
 
-  /* ── EMPTY STATE ── */
-  .empty-state {
-    text-align: center; padding: 60px 20px; color: var(--muted);
-  }
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
   .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
   .empty-state p { font-size: 0.95rem; line-height: 1.5; }
 
-  /* ── SECTION CARDS (Shopping List) ── */
+  /* SECTION CARDS */
   .section-card {
-    background: var(--surface);
-    border-radius: var(--radius);
-    margin-bottom: 12px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    border-left: 5px solid #ccc;
+    background: var(--surface); border-radius: var(--radius);
+    margin-bottom: 12px; box-shadow: var(--shadow);
+    overflow: hidden; border-left: 5px solid #ccc;
   }
   .section-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 12px;
-    cursor: pointer;
+    padding: 10px 12px; cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
   .section-title-row { display: flex; align-items: center; gap: 8px; }
@@ -97,22 +138,16 @@
   .section-name { font-weight: 700; font-size: 0.95rem; }
   .section-count {
     font-size: 0.75rem; color: var(--muted);
-    background: var(--bg); border-radius: 20px;
-    padding: 1px 8px;
+    background: var(--bg); border-radius: 20px; padding: 1px 8px;
   }
-  .section-collapse-btn {
-    font-size: 0.85rem; color: var(--muted);
-    transition: transform 0.2s;
-  }
+  .section-collapse-btn { font-size: 0.85rem; color: var(--muted); transition: transform 0.2s; }
   .section-collapse-btn.collapsed { transform: rotate(-90deg); }
-
   .section-items { padding: 0 12px 8px; }
 
-  /* ── ITEM ROW ── */
+  /* ITEM ROW */
   .item-row {
     display: flex; align-items: center; gap: 10px;
-    padding: 9px 0;
-    border-bottom: 1px solid var(--bg);
+    padding: 9px 0; border-bottom: 1px solid var(--bg);
   }
   .item-row:last-child { border-bottom: none; }
   .item-check {
@@ -120,43 +155,43 @@
     border: 2px solid var(--border); background: none;
     cursor: pointer; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.75rem; color: transparent;
-    transition: all 0.15s;
+    font-size: 0.75rem; color: transparent; transition: all 0.15s;
     -webkit-tap-highlight-color: transparent;
   }
-  .item-check.checked {
-    background: var(--accent); border-color: var(--accent); color: white;
-  }
+  .item-check.checked { background: var(--accent); border-color: var(--accent); color: white; }
+  .item-label-wrap { flex: 1; min-width: 0; }
   .item-label {
-    flex: 1; font-size: 0.95rem;
-    transition: opacity 0.15s, text-decoration 0.15s;
+    font-size: 0.95rem; transition: opacity 0.15s, text-decoration 0.15s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .item-label.checked { opacity: 0.4; text-decoration: line-through; }
-  .item-qty {
-    font-size: 0.8rem; color: var(--muted); background: var(--bg);
-    border-radius: 8px; padding: 2px 7px; min-width: 28px; text-align: center;
-  }
+  .item-note { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
   .item-delete {
     background: none; border: none; color: #ddd; font-size: 1.1rem;
-    cursor: pointer; padding: 4px;
+    cursor: pointer; padding: 4px; flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
   }
   .item-delete:active { color: var(--danger); }
 
-  /* ── MANAGE SECTIONS VIEW ── */
+  /* LIST TOOLBAR */
+  .list-toolbar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  .clear-btn {
+    font-size: 0.8rem; color: var(--danger); background: none;
+    border: 1px solid #f5c6cb; border-radius: 8px; padding: 4px 10px;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+
+  /* MANAGE SECTIONS */
   .manage-section-item {
-    background: var(--surface);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    margin-bottom: 10px;
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow); margin-bottom: 10px;
     display: flex; align-items: center; gap: 10px;
-    padding: 12px 14px;
-    border-left: 5px solid #ccc;
+    padding: 12px 14px; border-left: 5px solid #ccc;
   }
   .manage-section-info { flex: 1; }
   .manage-section-name { font-weight: 700; font-size: 0.95rem; }
   .manage-section-sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
-  .manage-section-actions { display: flex; gap: 4px; }
+  .manage-section-actions { display: flex; gap: 4px; flex-shrink: 0; }
   .small-btn {
     background: var(--bg); border: 1px solid var(--border);
     border-radius: 8px; padding: 5px 10px;
@@ -167,67 +202,98 @@
   .small-btn.danger { color: var(--danger); border-color: #f5c6cb; }
   .drag-handle { color: var(--muted); font-size: 1.1rem; cursor: grab; padding: 4px; }
 
-  /* ── ADD SECTION FORM ── */
+  /* ADD/EDIT SECTION FORM */
   .add-section-form {
-    background: var(--surface);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 14px;
-    margin-bottom: 12px;
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 14px; margin-bottom: 12px;
   }
+  .form-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 12px; }
   .form-label { font-size: 0.78rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; display: block; }
   .form-row { display: flex; gap: 8px; margin-bottom: 10px; }
   .form-input {
     flex: 1; padding: 10px 12px;
     border: 1.5px solid var(--border); border-radius: 10px;
-    font-size: 0.95rem; background: var(--bg); color: var(--text);
-    outline: none;
+    font-size: 0.95rem; background: var(--bg); color: var(--text); outline: none;
   }
   .form-input:focus { border-color: var(--accent); }
-
-  .emoji-picker {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
-  }
+  .emoji-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
   .emoji-opt {
     font-size: 1.4rem; padding: 4px; border-radius: 8px; cursor: pointer;
-    border: 2px solid transparent;
-    -webkit-tap-highlight-color: transparent;
+    border: 2px solid transparent; -webkit-tap-highlight-color: transparent;
   }
-  .emoji-opt.selected { border-color: var(--accent); background: #e8f5e9; }
-
-  .color-picker {
-    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;
-  }
+  .emoji-opt.selected { border-color: var(--accent); background: var(--accent-light); }
+  .color-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
   .color-opt {
     width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
     border: 3px solid transparent; transition: transform 0.1s;
     -webkit-tap-highlight-color: transparent;
   }
   .color-opt.selected { border-color: var(--text); transform: scale(1.15); }
-
+  .form-btn-row { display: flex; gap: 8px; }
   .primary-btn {
-    width: 100%; padding: 12px; border: none; border-radius: 10px;
+    flex: 1; padding: 12px; border: none; border-radius: 10px;
     background: var(--accent); color: white; font-size: 0.95rem; font-weight: 600;
     cursor: pointer; -webkit-tap-highlight-color: transparent;
   }
   .primary-btn:active { opacity: 0.85; }
+  .secondary-btn {
+    padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 10px;
+    background: none; font-size: 0.95rem; color: var(--muted);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
 
-  /* ── BOTTOM INPUT BAR ── */
+  /* PRODUCTS LIST inside section */
+  .products-section {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow); margin-bottom: 10px;
+    border-left: 5px solid #ccc; overflow: hidden;
+  }
+  .products-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .products-list { padding: 0 12px 10px; }
+  .product-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 0; border-bottom: 1px solid var(--bg);
+  }
+  .product-row:last-child { border-bottom: none; }
+  .product-name { flex: 1; font-size: 0.9rem; }
+  .product-edit-btn {
+    background: none; border: none; font-size: 0.85rem; color: var(--muted);
+    cursor: pointer; padding: 4px 6px; border-radius: 6px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .product-edit-btn:active { background: var(--bg); }
+  .add-product-row {
+    display: flex; gap: 6px; margin-top: 8px; padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .add-product-input {
+    flex: 1; padding: 8px 10px;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 0.9rem; background: var(--bg); color: var(--text); outline: none;
+  }
+  .add-product-input:focus { border-color: var(--accent); }
+  .add-product-btn {
+    padding: 8px 12px; border: none; border-radius: 8px;
+    background: var(--accent); color: white; font-size: 0.9rem;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+
+  /* BOTTOM INPUT BAR */
   .bottom-bar {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    padding: 10px 14px 16px;
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 10px 14px max(16px, env(safe-area-inset-bottom));
   }
-  .input-row {
-    display: flex; gap: 8px; align-items: flex-end; position: relative;
-  }
+  .input-row { display: flex; gap: 8px; align-items: flex-end; position: relative; }
   .item-input-wrap { flex: 1; position: relative; }
   #itemInput {
     width: 100%; padding: 11px 14px;
     border: 1.5px solid var(--border); border-radius: 12px;
-    font-size: 1rem; background: var(--input-bg); color: var(--text);
+    font-size: 1rem; background: var(--surface); color: var(--text);
     outline: none; -webkit-appearance: none;
   }
   #itemInput:focus { border-color: var(--accent); }
@@ -235,12 +301,29 @@
     padding: 11px 16px; border: none; border-radius: 12px;
     background: var(--accent); color: white;
     font-size: 1rem; font-weight: 700; cursor: pointer;
-    white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
   }
   #addBtn:active { opacity: 0.8; }
 
-  /* ── AUTOCOMPLETE ── */
+  /* NOTE INPUT (appears below main input) */
+  .note-row {
+    display: flex; gap: 8px; margin-top: 6px;
+    max-height: 0; overflow: hidden; transition: max-height 0.2s;
+  }
+  .note-row.visible { max-height: 50px; }
+  #noteInput {
+    flex: 1; padding: 8px 12px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 0.88rem; background: var(--surface); color: var(--muted);
+    outline: none; -webkit-appearance: none;
+  }
+  #noteInput:focus { border-color: var(--accent); }
+  .note-label {
+    font-size: 0.75rem; color: var(--muted); align-self: center;
+    white-space: nowrap;
+  }
+
+  /* AUTOCOMPLETE */
   .autocomplete-list {
     position: absolute; bottom: calc(100% + 6px); left: 0; right: 0;
     background: var(--surface); border: 1.5px solid var(--border);
@@ -261,7 +344,7 @@
   }
   .ac-name { font-size: 0.95rem; flex: 1; }
 
-  /* ── MODAL ── */
+  /* MODALS */
   .modal-overlay {
     display: none; position: fixed; inset: 0; z-index: 300;
     background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
@@ -270,23 +353,19 @@
   .modal-overlay.open { display: flex; }
   .modal {
     background: var(--surface); border-radius: 20px 20px 0 0;
-    padding: 20px 18px 32px;
-    width: 100%; max-width: 480px;
+    padding: 20px 18px 32px; width: 100%; max-width: 480px;
     animation: slideUp 0.2s ease;
+    max-height: 85vh; overflow-y: auto;
   }
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-  }
-  .modal h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 14px; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
   .modal-subtitle { font-size: 0.82rem; color: var(--muted); margin-bottom: 14px; }
-  .section-choose-list { display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; }
+  .section-choose-list { display: flex; flex-direction: column; gap: 8px; }
   .section-choose-btn {
     display: flex; align-items: center; gap: 10px;
     padding: 12px 14px; border-radius: 12px;
     border: 1.5px solid var(--border); background: none; cursor: pointer;
     text-align: left; -webkit-tap-highlight-color: transparent;
-    transition: background 0.1s;
   }
   .section-choose-btn:active { background: var(--bg); }
   .section-choose-emoji { font-size: 1.2rem; }
@@ -294,21 +373,30 @@
   .modal-cancel {
     width: 100%; margin-top: 12px; padding: 12px;
     border: 1.5px solid var(--border); border-radius: 12px;
-    background: none; font-size: 0.95rem; color: var(--muted);
+    background: none; font-size: 0.95rem; color: var(--muted); cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* EDIT PRODUCT MODAL */
+  .modal-input {
+    width: 100%; padding: 11px 14px; margin-bottom: 10px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 0.95rem; background: var(--bg); color: var(--text); outline: none;
+  }
+  .modal-input:focus { border-color: var(--accent); }
+  .modal-btn-row { display: flex; gap: 8px; margin-top: 4px; }
+  .modal-primary {
+    flex: 1; padding: 12px; border: none; border-radius: 10px;
+    background: var(--accent); color: white; font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .modal-danger {
+    padding: 12px 16px; border: 1.5px solid #f5c6cb; border-radius: 10px;
+    background: none; color: var(--danger); font-size: 0.95rem;
     cursor: pointer; -webkit-tap-highlight-color: transparent;
   }
 
-  /* ── CLEAR CHECKED BUTTON ── */
-  .list-toolbar {
-    display: flex; justify-content: flex-end; margin-bottom: 8px;
-  }
-  .clear-btn {
-    font-size: 0.8rem; color: var(--danger); background: none;
-    border: 1px solid #f5c6cb; border-radius: 8px; padding: 4px 10px;
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-  }
-
-  /* DRAG states */
+  /* DRAG */
   .dragging { opacity: 0.5; }
   .drag-over { outline: 2px dashed var(--accent); }
 </style>
@@ -318,7 +406,8 @@
 <header>
   <h1>🛒 My Supermarket</h1>
   <div class="header-actions">
-    <button class="icon-btn" id="clearCheckedBtn" title="Remove checked items">🗑</button>
+    <button class="icon-btn" id="themeBtn" title="Change theme">🎨</button>
+    <button class="icon-btn" id="clearCheckedBtn" title="Remove checked">🗑</button>
   </div>
 </header>
 
@@ -329,7 +418,7 @@
 
 <main id="mainContent"></main>
 
-<!-- Bottom input bar (only on list tab) -->
+<!-- Bottom input (list tab only) -->
 <div class="bottom-bar" id="bottomBar">
   <div class="input-row">
     <div class="item-input-wrap">
@@ -338,36 +427,93 @@
     </div>
     <button id="addBtn">Add</button>
   </div>
+  <div class="note-row" id="noteRow">
+    <span class="note-label">Note:</span>
+    <input type="text" id="noteInput" placeholder="amount, brand, specifics…" autocomplete="off" />
+  </div>
+</div>
+
+<!-- Modal: theme picker -->
+<div class="modal-overlay" id="themeModal">
+  <div class="modal">
+    <h2>Appearance</h2>
+    <p class="modal-subtitle">Choose a colour palette</p>
+    <div style="display:flex;flex-direction:column;gap:8px" id="themeList"></div>
+    <button class="modal-cancel" id="themeModalCancel">Close</button>
+  </div>
 </div>
 
 <!-- Modal: assign new product to section -->
 <div class="modal-overlay" id="assignModal">
   <div class="modal">
-    <h2>Which section is this in?</h2>
+    <h2>Which section?</h2>
     <p class="modal-subtitle" id="assignModalSubtitle"></p>
     <div class="section-choose-list" id="sectionChooseList"></div>
     <button class="modal-cancel" id="assignModalCancel">Cancel</button>
   </div>
 </div>
 
+<!-- Modal: edit product -->
+<div class="modal-overlay" id="editProductModal">
+  <div class="modal">
+    <h2>Edit product</h2>
+    <input type="text" class="modal-input" id="editProductName" placeholder="Product name" />
+    <p class="form-label" style="margin-bottom:8px">Move to section:</p>
+    <div class="section-choose-list" id="editProductSectionList"></div>
+    <div class="modal-btn-row">
+      <button class="modal-primary" id="editProductSave">Save</button>
+      <button class="modal-danger" id="editProductDelete">Delete</button>
+    </div>
+    <button class="modal-cancel" id="editProductCancel">Cancel</button>
+  </div>
+</div>
+
+<!-- Modal: edit section -->
+<div class="modal-overlay" id="editSectionModal">
+  <div class="modal">
+    <h2>Edit section</h2>
+    <p class="form-label">Name</p>
+    <input type="text" class="modal-input" id="editSectionName" placeholder="Section name" />
+    <p class="form-label">Icon</p>
+    <div class="emoji-picker" id="editEmojiPicker"></div>
+    <p class="form-label">Color</p>
+    <div class="color-picker" id="editColorPicker"></div>
+    <div class="modal-btn-row">
+      <button class="modal-primary" id="editSectionSave">Save</button>
+    </div>
+    <button class="modal-cancel" id="editSectionCancel">Cancel</button>
+  </div>
+</div>
+
 <script>
-// ─── STATE ───────────────────────────────────────────────────────────────────
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const SECTION_COLORS = [
   '#2E7D32','#1565C0','#6A1B9A','#E65100','#00695C',
   '#AD1457','#F57F17','#37474F','#4E342E','#0277BD'
 ];
-const SECTION_EMOJIS = ['🥦','🥩','🥛','🍞','🧴','🍷','🧁','🛒','🧹','🐟','🧀','🍎','🌶️','🥚','☕'];
+const SECTION_EMOJIS = [
+  '🥦','🥩','🥛','🍞','🧴','🍷','🧁','🛒','🧹','🐟',
+  '🧀','🍎','🌶️','🥚','☕','🫙','🧂','🥫','🍝','🫒',
+  '🧃','🍪','🌿','🧊','🐓','🥐','🍋','🫘','🥜','🛁',
+  '🌾','📖','🧆','🥗','🫚','🍯','🌰','🫛','🥬','🍄'
+];
 
+// ─── STATE ────────────────────────────────────────────────────────────────────
 function loadState() {
   try {
-    return JSON.parse(localStorage.getItem('groceryApp') || 'null') || { sections: [], products: [], listItems: [] };
+    return JSON.parse(localStorage.getItem('groceryApp') || 'null') ||
+      { sections: [], products: [], listItems: [] };
   } catch { return { sections: [], products: [], listItems: [] }; }
 }
 function saveState() { localStorage.setItem('groceryApp', JSON.stringify(state)); }
-
 let state = loadState();
 let currentTab = 'list';
-let pendingNewItem = null; // item name awaiting section assignment
+let pendingNewItem = null;
+let editingProductId = null;
+let editingProductSectionId = null;
+let editingSectionId = null;
+let editingSectionEmoji = null;
+let editingSectionColor = null;
 
 // ─── RENDER ──────────────────────────────────────────────────────────────────
 function render() {
@@ -378,77 +524,64 @@ function render() {
 
 function renderList() {
   const main = document.getElementById('mainContent');
-  const activeItems = state.listItems.filter(i => !i.checked);
-  const checkedItems = state.listItems.filter(i => i.checked);
-
   if (state.listItems.length === 0) {
-    main.innerHTML = `
-      <div class="empty-state">
-        <div class="emoji">🛍️</div>
-        <p>Your list is empty.<br>Type an item below to get started.</p>
-      </div>`;
+    main.innerHTML = `<div class="empty-state">
+      <div class="emoji">🛍️</div>
+      <p>Your list is empty.<br>Type an item below to get started.</p>
+    </div>`;
     return;
   }
 
-  // Group by section order
-  const sections = state.sections;
-  const noSectionItems = state.listItems.filter(i => {
-    const p = state.products.find(p => p.name.toLowerCase() === i.name.toLowerCase());
-    return !p || !sections.find(s => s.id === p.sectionId);
-  });
-
+  const checkedItems = state.listItems.filter(i => i.checked);
   let html = '';
-
-  // Toolbar
   if (checkedItems.length > 0) {
     html += `<div class="list-toolbar">
       <button class="clear-btn" onclick="clearChecked()">Remove ${checkedItems.length} checked</button>
     </div>`;
   }
 
-  // Sections in order
-  sections.forEach(section => {
+  state.sections.forEach(section => {
     const items = state.listItems.filter(li => {
       const p = state.products.find(p => p.name.toLowerCase() === li.name.toLowerCase());
       return p && p.sectionId === section.id;
     });
     if (items.length === 0) return;
-
     const unchecked = items.filter(i => !i.checked);
-    const checked = items.filter(i => i.checked);
-    const all = [...unchecked, ...checked];
+    const all = [...unchecked, ...items.filter(i => i.checked)];
 
     html += `<div class="section-card" style="border-left-color:${section.color}">
       <div class="section-header" onclick="toggleSection('${section.id}')">
         <div class="section-title-row">
           <span class="section-emoji">${section.emoji}</span>
-          <span class="section-name">${section.name}</span>
+          <span class="section-name">${escHtml(section.name)}</span>
           <span class="section-count">${unchecked.length}/${all.length}</span>
         </div>
         <span class="section-collapse-btn ${section.collapsed ? 'collapsed' : ''}">▼</span>
       </div>`;
     if (!section.collapsed) {
       html += `<div class="section-items">`;
-      all.forEach(item => {
-        html += renderItemRow(item);
-      });
+      all.forEach(item => { html += renderItemRow(item); });
       html += `</div>`;
     }
     html += `</div>`;
   });
 
-  // Unknown section
-  if (noSectionItems.length > 0) {
+  // Unassigned
+  const noSection = state.listItems.filter(li => {
+    const p = state.products.find(p => p.name.toLowerCase() === li.name.toLowerCase());
+    return !p || !state.sections.find(s => s.id === p.sectionId);
+  });
+  if (noSection.length > 0) {
     html += `<div class="section-card" style="border-left-color:#aaa">
       <div class="section-header">
         <div class="section-title-row">
           <span class="section-emoji">❓</span>
           <span class="section-name">Unassigned</span>
-          <span class="section-count">${noSectionItems.length}</span>
+          <span class="section-count">${noSection.length}</span>
         </div>
       </div>
       <div class="section-items">`;
-    noSectionItems.forEach(item => { html += renderItemRow(item); });
+    noSection.forEach(item => { html += renderItemRow(item); });
     html += `</div></div>`;
   }
 
@@ -456,12 +589,16 @@ function renderList() {
 }
 
 function renderItemRow(item) {
+  const noteHtml = item.note
+    ? `<div class="item-note">${escHtml(item.note)}</div>` : '';
   return `<div class="item-row">
     <button class="item-check ${item.checked ? 'checked' : ''}" onclick="toggleItem('${item.id}')">
       ${item.checked ? '✓' : ''}
     </button>
-    <span class="item-label ${item.checked ? 'checked' : ''}">${escHtml(item.name)}</span>
-    ${item.qty ? `<span class="item-qty">${escHtml(item.qty)}</span>` : ''}
+    <div class="item-label-wrap">
+      <div class="item-label ${item.checked ? 'checked' : ''}">${escHtml(item.name)}</div>
+      ${noteHtml}
+    </div>
     <button class="item-delete" onclick="removeListItem('${item.id}')">✕</button>
   </div>`;
 }
@@ -470,15 +607,16 @@ function renderManage() {
   const main = document.getElementById('mainContent');
   let html = `
     <div class="add-section-form">
-      <div class="form-label">New section name</div>
+      <div class="form-title">New section</div>
+      <label class="form-label">Name</label>
       <div class="form-row">
         <input class="form-input" id="newSectionName" placeholder="e.g. Produce" />
       </div>
-      <div class="form-label">Icon</div>
+      <label class="form-label">Icon</label>
       <div class="emoji-picker">
         ${SECTION_EMOJIS.map((e,i) => `<span class="emoji-opt ${i===0?'selected':''}" onclick="selectEmoji(this,'${e}')">${e}</span>`).join('')}
       </div>
-      <div class="form-label">Color</div>
+      <label class="form-label">Color</label>
       <div class="color-picker">
         ${SECTION_COLORS.map((c,i) => `<div class="color-opt ${i===0?'selected':''}" style="background:${c}" onclick="selectColor(this,'${c}')"></div>`).join('')}
       </div>
@@ -488,27 +626,48 @@ function renderManage() {
   if (state.sections.length === 0) {
     html += `<div class="empty-state"><div class="emoji">🗺️</div><p>No sections yet.<br>Add your first aisle above.</p></div>`;
   } else {
-    html += `<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px;padding:0 2px">Drag to reorder sections (path order)</p>`;
+    html += `<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px;padding:0 2px">Drag to reorder · tap Edit to change name/icon/color · tap a product to rename or delete it</p>`;
     state.sections.forEach((s, idx) => {
-      const productCount = state.products.filter(p => p.sectionId === s.id).length;
-      html += `<div class="manage-section-item" style="border-left-color:${s.color}" draggable="true"
+      const products = state.products.filter(p => p.sectionId === s.id);
+      html += `<div class="products-section" style="border-left-color:${s.color}" draggable="true"
         ondragstart="dragStart(event,${idx})" ondragover="dragOver(event,${idx})" ondrop="dragDrop(event,${idx})" ondragleave="dragLeave(event)">
-        <span class="drag-handle">⠿</span>
-        <div class="manage-section-info">
-          <div class="manage-section-name">${s.emoji} ${escHtml(s.name)}</div>
-          <div class="manage-section-sub">${productCount} known product${productCount !== 1 ? 's' : ''}</div>
-        </div>
-        <div class="manage-section-actions">
-          <button class="small-btn" onclick="moveSection(${idx},-1)">↑</button>
-          <button class="small-btn" onclick="moveSection(${idx},1)">↓</button>
-          <button class="small-btn danger" onclick="deleteSection('${s.id}')">Delete</button>
-        </div>
-      </div>`;
+        <div class="products-section-header" onclick="toggleProductsSection('${s.id}')">
+          <div class="section-title-row">
+            <span class="drag-handle" onclick="event.stopPropagation()">⠿</span>
+            <span class="section-emoji">${s.emoji}</span>
+            <span class="section-name">${escHtml(s.name)}</span>
+            <span class="section-count">${products.length} product${products.length!==1?'s':''}</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="small-btn" onclick="event.stopPropagation();openEditSection('${s.id}')">Edit</button>
+            <button class="small-btn danger" onclick="event.stopPropagation();deleteSection('${s.id}')">Delete</button>
+          </div>
+        </div>`;
+
+      if (!s.productsCollapsed) {
+        html += `<div class="products-list">`;
+        if (products.length === 0) {
+          html += `<p style="font-size:0.82rem;color:var(--muted);padding:4px 0">No products yet.</p>`;
+        } else {
+          products.forEach(p => {
+            html += `<div class="product-row">
+              <span class="product-name">${escHtml(p.name)}</span>
+              <button class="product-edit-btn" onclick="openEditProduct('${p.id}')">✏️</button>
+            </div>`;
+          });
+        }
+        html += `<div class="add-product-row">
+          <input class="add-product-input" id="newProduct_${s.id}" placeholder="Add product…" autocomplete="off"
+            onkeydown="if(event.key==='Enter') addProductToSection('${s.id}')" />
+          <button class="add-product-btn" onclick="addProductToSection('${s.id}')">+</button>
+        </div>`;
+        html += `</div>`;
+      }
+      html += `</div>`;
     });
   }
 
   main.innerHTML = html;
-  // Restore selected emoji/color
   window._selectedEmoji = SECTION_EMOJIS[0];
   window._selectedColor = SECTION_COLORS[0];
 }
@@ -517,22 +676,19 @@ function renderManage() {
 function addSection() {
   const name = document.getElementById('newSectionName').value.trim();
   if (!name) return alert('Please enter a section name.');
-  const id = 'sec_' + Date.now();
-  state.sections.push({ id, name, emoji: window._selectedEmoji || '🛒', color: window._selectedColor || '#2E7D32', collapsed: false });
+  state.sections.push({
+    id: 'sec_' + Date.now(), name,
+    emoji: window._selectedEmoji || '🛒',
+    color: window._selectedColor || '#2E7D32',
+    collapsed: false, productsCollapsed: false
+  });
   saveState(); render();
 }
 
 function deleteSection(id) {
   if (!confirm('Delete this section? Products assigned to it will become unassigned.')) return;
   state.sections = state.sections.filter(s => s.id !== id);
-  state.products = state.products.map(p => p.sectionId === id ? { ...p, sectionId: null } : p);
-  saveState(); render();
-}
-
-function moveSection(idx, dir) {
-  const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= state.sections.length) return;
-  [state.sections[idx], state.sections[newIdx]] = [state.sections[newIdx], state.sections[idx]];
+  state.products = state.products.map(p => p.sectionId === id ? {...p, sectionId: null} : p);
   saveState(); render();
 }
 
@@ -542,16 +698,134 @@ function toggleSection(id) {
   saveState(); render();
 }
 
+function toggleProductsSection(id) {
+  const s = state.sections.find(s => s.id === id);
+  if (s) s.productsCollapsed = !s.productsCollapsed;
+  saveState(); render();
+}
+
 function selectEmoji(el, emoji) {
-  document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+  el.closest('.emoji-picker').querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
   el.classList.add('selected');
   window._selectedEmoji = emoji;
 }
 function selectColor(el, color) {
-  document.querySelectorAll('.color-opt').forEach(e => e.classList.remove('selected'));
+  el.closest('.color-picker').querySelectorAll('.color-opt').forEach(e => e.classList.remove('selected'));
   el.classList.add('selected');
   window._selectedColor = color;
 }
+
+// ─── EDIT SECTION MODAL ───────────────────────────────────────────────────────
+function openEditSection(id) {
+  const s = state.sections.find(s => s.id === id);
+  if (!s) return;
+  editingSectionId = id;
+  editingSectionEmoji = s.emoji;
+  editingSectionColor = s.color;
+
+  document.getElementById('editSectionName').value = s.name;
+
+  const ep = document.getElementById('editEmojiPicker');
+  ep.innerHTML = SECTION_EMOJIS.map(e =>
+    `<span class="emoji-opt ${e===s.emoji?'selected':''}" onclick="pickEditEmoji(this,'${e}')">${e}</span>`
+  ).join('');
+
+  const cp = document.getElementById('editColorPicker');
+  cp.innerHTML = SECTION_COLORS.map(c =>
+    `<div class="color-opt ${c===s.color?'selected':''}" style="background:${c}" onclick="pickEditColor(this,'${c}')"></div>`
+  ).join('');
+
+  document.getElementById('editSectionModal').classList.add('open');
+}
+function pickEditEmoji(el, emoji) {
+  document.getElementById('editEmojiPicker').querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  editingSectionEmoji = emoji;
+}
+function pickEditColor(el, color) {
+  document.getElementById('editColorPicker').querySelectorAll('.color-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  editingSectionColor = color;
+}
+document.getElementById('editSectionSave').onclick = () => {
+  const name = document.getElementById('editSectionName').value.trim();
+  if (!name) return alert('Please enter a name.');
+  const s = state.sections.find(s => s.id === editingSectionId);
+  if (s) { s.name = name; s.emoji = editingSectionEmoji; s.color = editingSectionColor; }
+  saveState();
+  document.getElementById('editSectionModal').classList.remove('open');
+  render();
+};
+document.getElementById('editSectionCancel').onclick = () => {
+  document.getElementById('editSectionModal').classList.remove('open');
+};
+
+// ─── PRODUCT ACTIONS ──────────────────────────────────────────────────────────
+function addProductToSection(sectionId) {
+  const input = document.getElementById('newProduct_' + sectionId);
+  if (!input) return;
+  const name = input.value.trim();
+  if (!name) return;
+  if (state.products.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+    alert(`"${name}" already exists.`); return;
+  }
+  state.products.push({ id: 'p_' + Date.now(), name, sectionId });
+  saveState(); render();
+}
+
+function openEditProduct(productId) {
+  const p = state.products.find(p => p.id === productId);
+  if (!p) return;
+  editingProductId = productId;
+  editingProductSectionId = p.sectionId;
+
+  document.getElementById('editProductName').value = p.name;
+
+  const list = document.getElementById('editProductSectionList');
+  list.innerHTML = state.sections.map(s =>
+    `<button class="section-choose-btn ${s.id===p.sectionId?'':''}
+      " style="border-color:${s.id===p.sectionId?s.color:'var(--border)'};background:${s.id===p.sectionId?'var(--accent-light)':''}"
+      onclick="pickEditProductSection(this,'${s.id}','${s.color}')">
+      <span class="section-choose-emoji">${s.emoji}</span>
+      <span class="section-choose-name">${escHtml(s.name)}</span>
+    </button>`
+  ).join('');
+
+  document.getElementById('editProductModal').classList.add('open');
+}
+
+function pickEditProductSection(el, sectionId, color) {
+  document.getElementById('editProductSectionList').querySelectorAll('.section-choose-btn').forEach(b => {
+    b.style.borderColor = 'var(--border)'; b.style.background = '';
+  });
+  el.style.borderColor = color; el.style.background = 'var(--accent-light)';
+  editingProductSectionId = sectionId;
+}
+
+document.getElementById('editProductSave').onclick = () => {
+  const name = document.getElementById('editProductName').value.trim();
+  if (!name) return alert('Please enter a name.');
+  const p = state.products.find(p => p.id === editingProductId);
+  if (p) { p.name = name; p.sectionId = editingProductSectionId; }
+  // Also update any list items using the old name
+  const oldName = p ? p.name : '';
+  state.listItems.forEach(li => { if (li.name === oldName) li.name = name; });
+  saveState();
+  document.getElementById('editProductModal').classList.remove('open');
+  render();
+};
+
+document.getElementById('editProductDelete').onclick = () => {
+  if (!confirm('Remove this product from your known products? It won\'t be deleted from the current list.')) return;
+  state.products = state.products.filter(p => p.id !== editingProductId);
+  saveState();
+  document.getElementById('editProductModal').classList.remove('open');
+  render();
+};
+
+document.getElementById('editProductCancel').onclick = () => {
+  document.getElementById('editProductModal').classList.remove('open');
+};
 
 // ─── DRAG & DROP ─────────────────────────────────────────────────────────────
 let dragSrcIdx = null;
@@ -583,26 +857,23 @@ function clearChecked() {
 document.getElementById('clearCheckedBtn').onclick = clearChecked;
 
 // ─── ADD ITEM ─────────────────────────────────────────────────────────────────
-function addItem(rawName) {
-  const nameParts = rawName.trim().match(/^(.*?)(?:\s+x(\S+))?$/i);
-  const name = nameParts ? nameParts[1].trim() : rawName.trim();
-  const qty = nameParts && nameParts[2] ? nameParts[2] : '';
+function addItem(name) {
+  name = name.trim();
   if (!name) return;
+  const note = document.getElementById('noteInput').value.trim();
 
-  // Already on list?
   if (state.listItems.find(i => i.name.toLowerCase() === name.toLowerCase())) {
-    alert(`"${name}" is already on your list.`);
-    return;
+    alert(`"${name}" is already on your list.`); return;
   }
 
-  // Known product?
   const known = state.products.find(p => p.name.toLowerCase() === name.toLowerCase());
   if (known) {
-    state.listItems.push({ id: 'li_' + Date.now(), name: known.name, qty, checked: false });
+    state.listItems.push({ id: 'li_' + Date.now(), name: known.name, note, checked: false });
     saveState(); render();
+    document.getElementById('noteInput').value = '';
+    document.getElementById('noteRow').classList.remove('visible');
   } else {
-    // New product — ask for section
-    pendingNewItem = { name, qty };
+    pendingNewItem = { name, note };
     openAssignModal(name);
   }
 }
@@ -611,27 +882,28 @@ function openAssignModal(name) {
   document.getElementById('assignModalSubtitle').textContent = `"${name}" isn't saved yet. Pick a section:`;
   const list = document.getElementById('sectionChooseList');
   if (state.sections.length === 0) {
-    list.innerHTML = `<p style="color:var(--muted);font-size:0.9rem">No sections created yet. Go to the Sections tab first.</p>`;
+    list.innerHTML = `<p style="color:var(--muted);font-size:0.9rem">No sections yet. Go to the Sections tab first.</p>`;
   } else {
-    list.innerHTML = state.sections.map(s => `
-      <button class="section-choose-btn" style="border-color:${s.color}" onclick="assignSection('${s.id}')">
+    list.innerHTML = state.sections.map(s =>
+      `<button class="section-choose-btn" style="border-color:${s.color}" onclick="assignSection('${s.id}')">
         <span class="section-choose-emoji">${s.emoji}</span>
         <span class="section-choose-name">${escHtml(s.name)}</span>
-      </button>`).join('');
+      </button>`
+    ).join('');
   }
   document.getElementById('assignModal').classList.add('open');
 }
 
 function assignSection(sectionId) {
   if (!pendingNewItem) return;
-  const { name, qty } = pendingNewItem;
-  // Save product
+  const { name, note } = pendingNewItem;
   state.products.push({ id: 'p_' + Date.now(), name, sectionId });
-  // Add to list
-  state.listItems.push({ id: 'li_' + Date.now(), name, qty, checked: false });
+  state.listItems.push({ id: 'li_' + Date.now(), name, note, checked: false });
   saveState();
   pendingNewItem = null;
   closeAssignModal();
+  document.getElementById('noteInput').value = '';
+  document.getElementById('noteRow').classList.remove('visible');
   render();
 }
 
@@ -644,17 +916,25 @@ document.getElementById('assignModalCancel').onclick = closeAssignModal;
 // ─── INPUT & AUTOCOMPLETE ─────────────────────────────────────────────────────
 const itemInput = document.getElementById('itemInput');
 const autocompleteList = document.getElementById('autocompleteList');
+const noteRow = document.getElementById('noteRow');
 
 itemInput.addEventListener('input', () => {
   const val = itemInput.value.trim().toLowerCase();
-  if (!val || val.length < 1) { autocompleteList.style.display = 'none'; return; }
+  // Show note field once user starts typing
+  if (val.length > 0) noteRow.classList.add('visible');
+  else noteRow.classList.remove('visible');
 
-  const matches = state.products.filter(p => p.name.toLowerCase().includes(val) && p.name.toLowerCase() !== val);
+  if (!val) { autocompleteList.style.display = 'none'; return; }
+  const matches = state.products.filter(p =>
+    p.name.toLowerCase().includes(val) && p.name.toLowerCase() !== val
+  );
   if (matches.length === 0) { autocompleteList.style.display = 'none'; return; }
 
   autocompleteList.innerHTML = matches.slice(0, 8).map(p => {
     const section = state.sections.find(s => s.id === p.sectionId);
-    const chip = section ? `<span class="ac-section-chip" style="background:${section.color}">${section.emoji} ${escHtml(section.name)}</span>` : '';
+    const chip = section
+      ? `<span class="ac-section-chip" style="background:${section.color}">${section.emoji} ${escHtml(section.name)}</span>`
+      : '';
     return `<div class="autocomplete-item" onclick="selectAutocomplete('${escAttr(p.name)}')">
       <span class="ac-name">${escHtml(p.name)}</span>${chip}
     </div>`;
@@ -665,6 +945,7 @@ itemInput.addEventListener('input', () => {
 function selectAutocomplete(name) {
   itemInput.value = name;
   autocompleteList.style.display = 'none';
+  document.getElementById('noteInput').focus();
 }
 
 document.getElementById('addBtn').onclick = () => {
@@ -680,8 +961,10 @@ itemInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('addBtn').click();
   if (e.key === 'Escape') autocompleteList.style.display = 'none';
 });
+document.getElementById('noteInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('addBtn').click();
+});
 
-// Hide autocomplete on outside tap
 document.addEventListener('click', e => {
   if (!e.target.closest('.item-input-wrap')) autocompleteList.style.display = 'none';
 });
@@ -699,12 +982,81 @@ document.querySelectorAll('.tab').forEach(btn => {
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escAttr(s) { return String(s).replace(/'/g,"\\'"); }
 
+// ─── THEME ───────────────────────────────────────────────────────────────────
+const THEMES = [
+  { id: '',           label: 'Classic',    desc: 'Warm off-white',        swatch: ['#F7F5F0','#2E7D32'] },
+  { id: 'forest',     label: 'Forest',     desc: 'Soft greens & moss',    swatch: ['#EEF2EC','#3A6B35'] },
+  { id: 'earth',      label: 'Earth',      desc: 'Clay, terracotta & oak',swatch: ['#F2EDE6','#8B5E3C'] },
+  { id: 'stone',      label: 'Stone',      desc: 'Warm greys & pebble',   swatch: ['#EDEAE5','#6B6254'] },
+  { id: 'dark',       label: 'Dark',       desc: 'Dark with green accent', swatch: ['#1F1F1F','#5aad60'] },
+  { id: 'dark-earth', label: 'Dark Earth', desc: 'Dark with warm amber',  swatch: ['#221D18','#C4885A'] },
+];
+
+function applyTheme(id) {
+  document.documentElement.setAttribute('data-theme', id);
+  localStorage.setItem('groceryTheme', id);
+  renderThemeList();
+}
+
+function renderThemeList() {
+  const current = localStorage.getItem('groceryTheme') || '';
+  document.getElementById('themeList').innerHTML = THEMES.map(t => `
+    <button onclick="applyTheme('${t.id}')" style="
+      display:flex;align-items:center;gap:12px;padding:12px 14px;
+      border-radius:12px;border:2px solid ${t.id===current?'var(--accent)':'var(--border)'};
+      background:${t.id===current?'var(--accent-light)':'none'};
+      cursor:pointer;text-align:left;width:100%;
+      -webkit-tap-highlight-color:transparent;
+    ">
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <div style="width:20px;height:20px;border-radius:50%;background:${t.swatch[0]};border:1px solid #ccc"></div>
+        <div style="width:20px;height:20px;border-radius:50%;background:${t.swatch[1]}"></div>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:0.9rem;color:var(--text)">${t.label}</div>
+        <div style="font-size:0.75rem;color:var(--muted)">${t.desc}</div>
+      </div>
+      ${t.id===current?'<span style="margin-left:auto;color:var(--accent)">✓</span>':''}
+    </button>`).join('');
+}
+
+// Apply saved theme on load
+applyTheme(localStorage.getItem('groceryTheme') || '');
+
+document.getElementById('themeBtn').onclick = () => {
+  renderThemeList();
+  document.getElementById('themeModal').classList.add('open');
+};
+document.getElementById('themeModalCancel').onclick = () => {
+  document.getElementById('themeModal').classList.remove('open');
+};
+
 // ─── INIT ────────────────────────────────────────────────────────────────────
 render();
 
-// ─── SERVICE WORKER (PWA) ────────────────────────────────────────────────────
+// ─── PWA MANIFEST ────────────────────────────────────────────────────────────
+const manifest = {
+  name: 'My Supermarket List', short_name: 'Groceries',
+  start_url: './', display: 'standalone',
+  background_color: '#F7F5F0', theme_color: '#2E7D32',
+  icons: [{
+    src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232E7D32'/%3E%3Ctext y='80' x='10' font-size='72'%3E%F0%9F%9B%92%3C/text%3E%3C/svg%3E",
+    sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable'
+  }]
+};
+const mBlob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+document.getElementById('manifestLink').href = URL.createObjectURL(mBlob);
+
+// ─── SERVICE WORKER ───────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW failed:', e));
+  const swCode = `
+const CACHE='grocery-v3';
+self.addEventListener('install',e=>self.skipWaiting());
+self.addEventListener('activate',e=>e.waitUntil(clients.claim()));
+self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));`;
+  const swBlob = new Blob([swCode], {type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(swBlob))
+    .catch(()=>{});
 }
 </script>
 </body>
