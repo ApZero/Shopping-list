@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Groceries">
-<link rel="manifest" id="manifestLink">
+<link rel="manifest" href="./manifest.json">
 <style>
   /* ── THEMES ── */
   :root {
@@ -1034,29 +1034,9 @@ document.getElementById('themeModalCancel').onclick = () => {
 // ─── INIT ────────────────────────────────────────────────────────────────────
 render();
 
-// ─── PWA MANIFEST ────────────────────────────────────────────────────────────
-const manifest = {
-  name: 'My Supermarket List', short_name: 'Groceries',
-  start_url: './', display: 'standalone',
-  background_color: '#F7F5F0', theme_color: '#2E7D32',
-  icons: [{
-    src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232E7D32'/%3E%3Ctext y='80' x='10' font-size='72'%3E%F0%9F%9B%92%3C/text%3E%3C/svg%3E",
-    sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable'
-  }]
-};
-const mBlob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
-document.getElementById('manifestLink').href = URL.createObjectURL(mBlob);
-
 // ─── SERVICE WORKER ───────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
-  const swCode = `
-const CACHE='grocery-v3';
-self.addEventListener('install',e=>self.skipWaiting());
-self.addEventListener('activate',e=>e.waitUntil(clients.claim()));
-self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));`;
-  const swBlob = new Blob([swCode], {type:'application/javascript'});
-  navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-    .catch(()=>{});
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
 </script>
 </body>
