@@ -566,23 +566,34 @@ function renderList() {
     html += `</div>`;
   });
 
-  // Unassigned
-  const noSection = state.listItems.filter(li => {
+  // Others (one-off items, no section)
+  const othersItems = state.listItems.filter(li => li.isOther);
+  // Also catch truly unassigned (not marked as other but no known product/section)
+  const unassigned = state.listItems.filter(li => {
+    if (li.isOther) return false;
     const p = state.products.find(p => p.name.toLowerCase() === li.name.toLowerCase());
     return !p || !state.sections.find(s => s.id === p.sectionId);
   });
-  if (noSection.length > 0) {
-    html += `<div class="section-card" style="border-left-color:#aaa">
-      <div class="section-header">
+
+  const allOthers = [...unassigned, ...othersItems];
+  if (allOthers.length > 0) {
+    const othersCollapsed = state.othersCollapsed || false;
+    const uncheckedOthers = allOthers.filter(i => !i.checked);
+    html += `<div class="section-card" style="border-left-color:#999">
+      <div class="section-header" onclick="toggleOthers()">
         <div class="section-title-row">
-          <span class="section-emoji">❓</span>
-          <span class="section-name">Unassigned</span>
-          <span class="section-count">${noSection.length}</span>
+          <span class="section-emoji">🧺</span>
+          <span class="section-name">Others</span>
+          <span class="section-count">${uncheckedOthers.length}/${allOthers.length}</span>
         </div>
-      </div>
-      <div class="section-items">`;
-    noSection.forEach(item => { html += renderItemRow(item); });
-    html += `</div></div>`;
+        <span class="section-collapse-btn ${othersCollapsed ? 'collapsed' : ''}">▼</span>
+      </div>`;
+    if (!othersCollapsed) {
+      html += `<div class="section-items">`;
+      allOthers.forEach(item => { html += renderItemRow(item); });
+      html += `</div>`;
+    }
+    html += `</div>`;
   }
 
   main.innerHTML = html;
@@ -626,7 +637,7 @@ function renderManage() {
   if (state.sections.length === 0) {
     html += `<div class="empty-state"><div class="emoji">🗺️</div><p>No sections yet.<br>Add your first aisle above.</p></div>`;
   } else {
-    html += `<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px;padding:0 2px">Drag to reorder · tap Edit to change name/icon/color · tap a product to rename or delete it</p>`;
+    html += `<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px;padding:0 2px">Drag to reorder · tap a section to see its products · tap Edit to change name/icon/color</p>`;
     state.sections.forEach((s, idx) => {
       const products = state.products.filter(p => p.sectionId === s.id);
       html += `<div class="products-section" style="border-left-color:${s.color}" draggable="true"
@@ -680,7 +691,7 @@ function addSection() {
     id: 'sec_' + Date.now(), name,
     emoji: window._selectedEmoji || '🛒',
     color: window._selectedColor || '#2E7D32',
-    collapsed: false, productsCollapsed: false
+    collapsed: false, productsCollapsed: true
   });
   saveState(); render();
 }
@@ -844,9 +855,31 @@ function dragDrop(e, idx) {
 function toggleItem(id) {
   const item = state.listItems.find(i => i.id === id);
   if (item) item.checked = !item.checked;
+  // Auto-collapse section if all its items are now checked
+  state.sections.forEach(section => {
+    const items = state.listItems.filter(li => {
+      const p = state.products.find(p => p.name.toLowerCase() === li.name.toLowerCase());
+      return p && p.sectionId === section.id;
+    });
+    if (items.length > 0 && items.every(i => i.checked)) {
+      section.collapsed = true;
+    }
+  });
+  // Auto-collapse Others if all checked
+  const othersItems2 = state.listItems.filter(li => {
+    if (li.isOther) return true;
+    const p = state.products.find(p => p.name.toLowerCase() === li.name.toLowerCase());
+    return !p || !state.sections.find(s => s.id === p.sectionId);
+  });
+  if (othersItems2.length > 0 && othersItems2.every(i => i.checked)) {
+    state.othersCollapsed = true;
+  }
   saveState(); render();
 }
-function removeListItem(id) {
+function toggleOthers() {
+  state.othersCollapsed = !state.othersCollapsed;
+  saveState(); render();
+}
   state.listItems = state.listItems.filter(i => i.id !== id);
   saveState(); render();
 }
@@ -854,7 +887,14 @@ function clearChecked() {
   state.listItems = state.listItems.filter(i => !i.checked);
   saveState(); render();
 }
-document.getElementById('clearCheckedBtn').onclick = clearChecked;
+function clearFullList() {
+  if (!confirm('Clear the entire shopping list? Your sections and saved products won\'t be affected.')) return;
+  state.listItems = [];
+  state.sections.forEach(s => s.collapsed = false);
+  state.othersCollapsed = false;
+  saveState(); render();
+}
+document.getElementById('clearCheckedBtn').onclick = clearFullList;
 
 // ─── ADD ITEM ─────────────────────────────────────────────────────────────────
 function addItem(name) {
@@ -881,15 +921,19 @@ function addItem(name) {
 function openAssignModal(name) {
   document.getElementById('assignModalSubtitle').textContent = `"${name}" isn't saved yet. Pick a section:`;
   const list = document.getElementById('sectionChooseList');
+  const othersBtn = `<button class="section-choose-btn" style="border-color:#999" onclick="assignOthers()">
+    <span class="section-choose-emoji">🧺</span>
+    <span class="section-choose-name">Others <span style="font-size:0.75rem;color:var(--muted)">(don't save)</span></span>
+  </button>`;
   if (state.sections.length === 0) {
-    list.innerHTML = `<p style="color:var(--muted);font-size:0.9rem">No sections yet. Go to the Sections tab first.</p>`;
+    list.innerHTML = `<p style="color:var(--muted);font-size:0.9rem;margin-bottom:8px">No sections yet. Go to the Sections tab first.</p>` + othersBtn;
   } else {
     list.innerHTML = state.sections.map(s =>
       `<button class="section-choose-btn" style="border-color:${s.color}" onclick="assignSection('${s.id}')">
         <span class="section-choose-emoji">${s.emoji}</span>
         <span class="section-choose-name">${escHtml(s.name)}</span>
       </button>`
-    ).join('');
+    ).join('') + othersBtn;
   }
   document.getElementById('assignModal').classList.add('open');
 }
@@ -899,6 +943,19 @@ function assignSection(sectionId) {
   const { name, note } = pendingNewItem;
   state.products.push({ id: 'p_' + Date.now(), name, sectionId });
   state.listItems.push({ id: 'li_' + Date.now(), name, note, checked: false });
+  saveState();
+  pendingNewItem = null;
+  closeAssignModal();
+  document.getElementById('noteInput').value = '';
+  document.getElementById('noteRow').classList.remove('visible');
+  render();
+}
+
+function assignOthers() {
+  if (!pendingNewItem) return;
+  const { name, note } = pendingNewItem;
+  // Add to list as a one-off, not saved to products
+  state.listItems.push({ id: 'li_' + Date.now(), name, note, checked: false, isOther: true });
   saveState();
   pendingNewItem = null;
   closeAssignModal();
