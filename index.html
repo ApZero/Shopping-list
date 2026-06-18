@@ -880,6 +880,7 @@ function toggleOthers() {
   state.othersCollapsed = !state.othersCollapsed;
   saveState(); render();
 }
+function removeListItem(id) {
   state.listItems = state.listItems.filter(i => i.id !== id);
   saveState(); render();
 }
