@@ -165,7 +165,9 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .item-label.checked { opacity: 0.4; text-decoration: line-through; }
-  .item-note { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
+  .item-note { font-size: 0.78rem; color: var(--muted); margin-top: 1px; cursor: pointer; }
+  .item-note-empty { opacity: 0.5; font-style: italic; }
+  .note-edit-icon { font-size: 0.7rem; opacity: 0.6; }
   .item-delete {
     background: none; border: none; color: #ddd; font-size: 1.1rem;
     cursor: pointer; padding: 4px; flex-shrink: 0;
@@ -433,6 +435,17 @@
   </div>
 </div>
 
+<!-- Modal: edit item note -->
+<div class="modal-overlay" id="editNoteModal">
+  <div class="modal">
+    <h2>Edit note</h2>
+    <p class="modal-subtitle">Add an amount or detail for this item this time around.</p>
+    <input type="text" class="form-input" id="editNoteInput" placeholder="e.g. 2 bags, ripe ones" style="margin-bottom:14px">
+    <button class="primary-btn" onclick="saveEditNote()">Save</button>
+    <button class="modal-cancel" onclick="closeEditNote()">Cancel</button>
+  </div>
+</div>
+
 <!-- Modal: theme picker -->
 <div class="modal-overlay" id="themeModal">
   <div class="modal">
@@ -601,7 +614,8 @@ function renderList() {
 
 function renderItemRow(item) {
   const noteHtml = item.note
-    ? `<div class="item-note">${escHtml(item.note)}</div>` : '';
+    ? `<div class="item-note" onclick="openEditNote('${item.id}')">${escHtml(item.note)} <span class="note-edit-icon">✏️</span></div>`
+    : `<div class="item-note item-note-empty" onclick="openEditNote('${item.id}')">+ add note</div>`;
   return `<div class="item-row">
     <button class="item-check ${item.checked ? 'checked' : ''}" onclick="toggleItem('${item.id}')">
       ${item.checked ? '✓' : ''}
@@ -612,6 +626,30 @@ function renderItemRow(item) {
     </div>
     <button class="item-delete" onclick="removeListItem('${item.id}')">✕</button>
   </div>`;
+}
+
+let editingNoteItemId = null;
+function openEditNote(itemId) {
+  const item = state.listItems.find(i => i.id === itemId);
+  if (!item) return;
+  editingNoteItemId = itemId;
+  document.getElementById('editNoteInput').value = item.note || '';
+  document.getElementById('editNoteModal').classList.add('open');
+  setTimeout(() => document.getElementById('editNoteInput').focus(), 100);
+}
+function saveEditNote() {
+  const item = state.listItems.find(i => i.id === editingNoteItemId);
+  if (item) {
+    const val = document.getElementById('editNoteInput').value.trim();
+    item.note = val || null;
+    saveState();
+  }
+  closeEditNote();
+  render();
+}
+function closeEditNote() {
+  document.getElementById('editNoteModal').classList.remove('open');
+  editingNoteItemId = null;
 }
 
 function renderManage() {
@@ -1080,6 +1118,11 @@ function renderThemeList() {
 
 // Apply saved theme on load
 applyTheme(localStorage.getItem('groceryTheme') || '');
+
+document.getElementById('editNoteInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveEditNote();
+  if (e.key === 'Escape') closeEditNote();
+});
 
 document.getElementById('themeBtn').onclick = () => {
   renderThemeList();
