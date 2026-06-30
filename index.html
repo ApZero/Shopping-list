@@ -159,15 +159,13 @@
     -webkit-tap-highlight-color: transparent;
   }
   .item-check.checked { background: var(--accent); border-color: var(--accent); color: white; }
-  .item-label-wrap { flex: 1; min-width: 0; }
+  .item-label-wrap { flex: 1; min-width: 0; cursor: pointer; }
   .item-label {
     font-size: 0.95rem; transition: opacity 0.15s, text-decoration 0.15s;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .item-label.checked { opacity: 0.4; text-decoration: line-through; }
-  .item-note { font-size: 0.78rem; color: var(--muted); margin-top: 1px; cursor: pointer; }
-  .item-note-empty { opacity: 0.5; font-style: italic; }
-  .note-edit-icon { font-size: 0.7rem; opacity: 0.6; }
+  .item-note { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
   .item-delete {
     background: none; border: none; color: #ddd; font-size: 1.1rem;
     cursor: pointer; padding: 4px; flex-shrink: 0;
@@ -614,13 +612,12 @@ function renderList() {
 
 function renderItemRow(item) {
   const noteHtml = item.note
-    ? `<div class="item-note" onclick="openEditNote('${item.id}')">${escHtml(item.note)} <span class="note-edit-icon">✏️</span></div>`
-    : `<div class="item-note item-note-empty" onclick="openEditNote('${item.id}')">+ add note</div>`;
+    ? `<div class="item-note">${escHtml(item.note)}</div>` : '';
   return `<div class="item-row">
     <button class="item-check ${item.checked ? 'checked' : ''}" onclick="toggleItem('${item.id}')">
       ${item.checked ? '✓' : ''}
     </button>
-    <div class="item-label-wrap">
+    <div class="item-label-wrap" onclick="openEditNote('${item.id}')">
       <div class="item-label ${item.checked ? 'checked' : ''}">${escHtml(item.name)}</div>
       ${noteHtml}
     </div>
