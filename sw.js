@@ -1,8 +1,10 @@
-const CACHE = 'grocery-v6';
-const ASSETS = ['./index.html', './manifest.json', './icon.svg'];
+const CACHE = 'grocery-v7';
+const ASSETS = ['./index.html', './manifest.json', './icon.svg', './sw.js'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(ASSETS))
+  );
   self.skipWaiting();
 });
 
@@ -15,7 +17,17 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Only handle same-origin requests
+  if (!e.request.url.startsWith(self.location.origin)) return;
   e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(response => {
+        if (!response || response.status !== 200) return response;
+        const copy = response.clone();
+        caches.open(CACHE).then(c => c.put(e.request, copy));
+        return response;
+      });
+    })
   );
 });
