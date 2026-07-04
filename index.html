@@ -174,6 +174,30 @@
   .item-delete:active { color: var(--danger); }
 
   /* LIST TOOLBAR */
+  /* ── DONE STRIP ── */
+  .done-strip {
+    margin-top: 4px;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .done-strip-label {
+    font-size: 0.72rem; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0;
+  }
+  .done-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .done-chip {
+    font-size: 1.3rem; width: 40px; height: 40px;
+    border-radius: 10px; border: 2px solid;
+    background: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0.55; transition: opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .done-chip:active { opacity: 1; }
+
   .list-toolbar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
   .clear-btn {
     font-size: 0.8rem; color: var(--danger); background: none;
@@ -551,6 +575,9 @@ function renderList() {
     </div>`;
   }
 
+  // Separate done sections from active ones
+  const doneSections = [];
+
   state.sections.forEach(section => {
     const items = state.listItems.filter(li => {
       const p = state.products.find(p => p.name.toLowerCase() === li.name.toLowerCase());
@@ -558,8 +585,14 @@ function renderList() {
     });
     if (items.length === 0) return;
     const unchecked = items.filter(i => !i.checked);
-    const all = [...unchecked, ...items.filter(i => i.checked)];
+    const allDone = unchecked.length === 0;
 
+    if (allDone) {
+      doneSections.push(section);
+      return;
+    }
+
+    const all = [...unchecked, ...items.filter(i => i.checked)];
     html += `<div class="section-card" style="border-left-color:${section.color}">
       <div class="section-header" onclick="toggleSection('${section.id}')">
         <div class="section-title-row">
@@ -577,18 +610,18 @@ function renderList() {
     html += `</div>`;
   });
 
-  // Others (one-off items, no section)
+  // Others
   const othersItems = state.listItems.filter(li => li.isOther);
-  // Also catch truly unassigned (not marked as other but no known product/section)
   const unassigned = state.listItems.filter(li => {
     if (li.isOther) return false;
     const p = state.products.find(p => p.name.toLowerCase() === li.name.toLowerCase());
     return !p || !state.sections.find(s => s.id === p.sectionId);
   });
-
   const allOthers = [...unassigned, ...othersItems];
-  if (allOthers.length > 0) {
-    const othersCollapsed = state.othersCollapsed || false;
+  const othersCollapsed = state.othersCollapsed || false;
+  const othersAllDone = allOthers.length > 0 && allOthers.every(i => i.checked);
+
+  if (allOthers.length > 0 && !othersAllDone) {
     const uncheckedOthers = allOthers.filter(i => !i.checked);
     html += `<div class="section-card" style="border-left-color:#999">
       <div class="section-header" onclick="toggleOthers()">
@@ -605,6 +638,24 @@ function renderList() {
       html += `</div>`;
     }
     html += `</div>`;
+  }
+
+  // Done strip — compact emoji chips for fully completed sections
+  const doneChips = [...doneSections.map(s => ({ emoji: s.emoji, name: s.name, color: s.color, id: s.id, isOthers: false })),
+    ...(othersAllDone ? [{ emoji: '🧺', name: 'Others', color: '#999', id: null, isOthers: true }] : [])];
+
+  if (doneChips.length > 0) {
+    html += `<div class="done-strip">
+      <span class="done-strip-label">Done</span>
+      <div class="done-chips">
+        ${doneChips.map(s => `
+          <button class="done-chip" title="${escHtml(s.name)}"
+            style="border-color:${s.color};color:${s.color}"
+            onclick="${s.isOthers ? 'toggleOthers()' : `toggleSection('${s.id}')`}">
+            ${s.emoji}
+          </button>`).join('')}
+      </div>
+    </div>`;
   }
 
   main.innerHTML = html;
