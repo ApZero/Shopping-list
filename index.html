@@ -438,6 +438,7 @@
 <div class="tabs">
   <button class="tab active" data-tab="list">Shopping List</button>
   <button class="tab" data-tab="manage">Sections</button>
+  <button class="tab" data-tab="places">Places</button>
 </div>
 
 <main id="mainContent"></main>
@@ -454,6 +455,16 @@
   <div class="note-row" id="noteRow">
     <span class="note-label">Note:</span>
     <input type="text" id="noteInput" placeholder="amount, brand, specifics…" autocomplete="off" />
+  </div>
+</div>
+
+<!-- Bottom input (places tab) -->
+<div class="bottom-bar" id="placesBar" style="display:none">
+  <div class="input-row">
+    <div class="item-input-wrap">
+      <input type="text" id="placeItemInput" placeholder="Add item to place…" autocomplete="off" />
+    </div>
+    <button id="placeItemAddBtn">Add</button>
   </div>
 </div>
 
@@ -536,9 +547,11 @@ const SECTION_EMOJIS = [
 // ─── STATE ────────────────────────────────────────────────────────────────────
 function loadState() {
   try {
-    return JSON.parse(localStorage.getItem('groceryApp') || 'null') ||
-      { sections: [], products: [], listItems: [] };
-  } catch { return { sections: [], products: [], listItems: [] }; }
+    const s = JSON.parse(localStorage.getItem('groceryApp') || 'null') ||
+      { sections: [], products: [], listItems: [], places: [] };
+    if (!s.places) s.places = [];
+    return s;
+  } catch { return { sections: [], products: [], listItems: [], places: [] }; }
 }
 function saveState() { localStorage.setItem('groceryApp', JSON.stringify(state)); }
 let state = loadState();
@@ -553,8 +566,10 @@ let editingSectionColor = null;
 // ─── RENDER ──────────────────────────────────────────────────────────────────
 function render() {
   if (currentTab === 'list') renderList();
-  else renderManage();
+  else if (currentTab === 'manage') renderManage();
+  else if (currentTab === 'places') renderPlaces();
   document.getElementById('bottomBar').style.display = currentTab === 'list' ? '' : 'none';
+  document.getElementById('placesBar').style.display = currentTab === 'places' ? '' : 'none';
 }
 
 function renderList() {
@@ -686,18 +701,25 @@ function openEditNote(itemId) {
   setTimeout(() => document.getElementById('editNoteInput').focus(), 100);
 }
 function saveEditNote() {
-  const item = state.listItems.find(i => i.id === editingNoteItemId);
-  if (item) {
-    const val = document.getElementById('editNoteInput').value.trim();
-    item.note = val || null;
-    saveState();
+  const val = document.getElementById('editNoteInput').value.trim();
+  if (editingNoteItemId) {
+    const item = state.listItems.find(i => i.id === editingNoteItemId);
+    if (item) item.note = val || null;
+  } else if (editingPlaceNoteRef) {
+    const place = state.places.find(p => p.id === editingPlaceNoteRef.placeId);
+    if (place) {
+      const item = place.items.find(i => i.id === editingPlaceNoteRef.itemId);
+      if (item) item.note = val || null;
+    }
   }
+  saveState();
   closeEditNote();
   render();
 }
 function closeEditNote() {
   document.getElementById('editNoteModal').classList.remove('open');
   editingNoteItemId = null;
+  editingPlaceNoteRef = null;
 }
 
 function renderManage() {
@@ -1113,11 +1135,24 @@ document.addEventListener('click', e => {
   if (!e.target.closest('.item-input-wrap')) autocompleteList.style.display = 'none';
 });
 
+// ─── PLACES INPUT BAR ────────────────────────────────────────────────────────
+document.getElementById('placeItemAddBtn').onclick = () => {
+  const val = document.getElementById('placeItemInput').value.trim();
+  if (!val) return;
+  addPlaceItem(val);
+  document.getElementById('placeItemInput').value = '';
+  document.getElementById('placeItemInput').focus();
+};
+document.getElementById('placeItemInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('placeItemAddBtn').click();
+});
+
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tab').forEach(btn => {
   btn.onclick = () => {
     currentTab = btn.dataset.tab;
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === btn));
+    if (currentTab !== 'places') activePlaceId = null;
     render();
   };
 });
@@ -1125,6 +1160,165 @@ document.querySelectorAll('.tab').forEach(btn => {
 // ─── UTILS ───────────────────────────────────────────────────────────────────
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escAttr(s) { return String(s).replace(/'/g,"\\'"); }
+
+let activePlaceId = null; // which place's input bar is active
+
+// ─── PLACES ──────────────────────────────────────────────────────────────────
+function renderPlaces() {
+  const main = document.getElementById('mainContent');
+  const placeBar = document.getElementById('placesBar');
+
+  if (state.places.length === 0) {
+    main.innerHTML = `<div class="empty-state">
+      <div class="emoji">📍</div>
+      <p>No places yet.<br>Add a place like Farmacia or Ferretería.</p>
+    </div>
+    <div class="add-section-form" style="margin-top:0">
+      <div class="form-label">New place</div>
+      <div class="form-row">
+        <input class="form-input" id="newPlaceName" placeholder="e.g. Farmacia" />
+        <button class="primary-btn" style="width:auto;padding:10px 16px" onclick="addPlace()">Add</button>
+      </div>
+    </div>`;
+    placeBar.style.display = 'none';
+    activePlaceId = null;
+    return;
+  }
+
+  let html = `<div class="add-section-form">
+    <div class="form-label">New place</div>
+    <div class="form-row">
+      <input class="form-input" id="newPlaceName" placeholder="e.g. Farmacia" />
+      <button class="primary-btn" style="width:auto;padding:10px 16px" onclick="addPlace()">Add</button>
+    </div>
+  </div>`;
+
+  state.places.forEach(place => {
+    const items = place.items || [];
+    const unchecked = items.filter(i => !i.checked);
+    const checked = items.filter(i => i.checked);
+    const allDone = items.length > 0 && unchecked.length === 0;
+    const isActive = activePlaceId === place.id;
+
+    html += `<div class="section-card" style="border-left-color:${place.color || '#888'}">
+      <div class="section-header">
+        <div class="section-title-row" onclick="selectPlace('${place.id}')">
+          <span class="section-emoji">${place.emoji || '📍'}</span>
+          <span class="section-name">${escHtml(place.name)}</span>
+          ${items.length > 0 ? `<span class="section-count">${unchecked.length}/${items.length}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${allDone && items.length > 0 ? `<button class="small-btn" onclick="clearPlaceChecked('${place.id}')">Clear</button>` : ''}
+          <button class="small-btn danger" onclick="deletePlace('${place.id}')">✕</button>
+        </div>
+      </div>`;
+
+    if (items.length === 0 && !isActive) {
+      html += `<div style="padding:8px 12px 12px;color:var(--muted);font-size:0.85rem">Tap to add items</div>`;
+    }
+
+    if (items.length > 0) {
+      html += `<div class="section-items">`;
+      [...unchecked, ...checked].forEach(item => {
+        html += `<div class="item-row">
+          <button class="item-check ${item.checked ? 'checked' : ''}" onclick="togglePlaceItem('${place.id}','${item.id}')">
+            ${item.checked ? '✓' : ''}
+          </button>
+          <div class="item-label-wrap">
+            <div class="item-label ${item.checked ? 'checked' : ''}">${escHtml(item.name)}</div>
+            ${item.note ? `<div class="item-note" onclick="editPlaceItemNote('${place.id}','${item.id}')">${escHtml(item.note)}</div>`
+              : `<div class="item-note item-note-empty" onclick="editPlaceItemNote('${place.id}','${item.id}')"></div>`}
+          </div>
+          <button class="item-delete" onclick="removePlaceItem('${place.id}','${item.id}')">✕</button>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  });
+
+  main.innerHTML = html;
+
+  // Update place input bar placeholder
+  if (activePlaceId) {
+    const place = state.places.find(p => p.id === activePlaceId);
+    document.getElementById('placeItemInput').placeholder = place ? `Add item to ${place.name}…` : 'Add item…';
+    placeBar.style.display = '';
+  } else {
+    placeBar.style.display = 'none';
+  }
+}
+
+function selectPlace(id) {
+  activePlaceId = activePlaceId === id ? null : id;
+  render();
+  if (activePlaceId) setTimeout(() => document.getElementById('placeItemInput').focus(), 100);
+}
+
+function addPlace() {
+  const nameEl = document.getElementById('newPlaceName');
+  const name = nameEl.value.trim();
+  if (!name) return;
+  const placeColors = ['#1565C0','#6A1B9A','#E65100','#00695C','#AD1457','#37474F','#4E342E','#0277BD'];
+  const color = placeColors[state.places.length % placeColors.length];
+  const emojis = ['📍','🏥','🔧','🛍️','💊','🧰','🏪','🏬'];
+  const emoji = emojis[state.places.length % emojis.length];
+  state.places.push({ id: 'pl_' + Date.now(), name, color, emoji, items: [] });
+  activePlaceId = state.places[state.places.length - 1].id;
+  saveState(); render();
+}
+
+function deletePlace(id) {
+  const place = state.places.find(p => p.id === id);
+  if (!confirm(`Delete "${place?.name}"?`)) return;
+  state.places = state.places.filter(p => p.id !== id);
+  if (activePlaceId === id) activePlaceId = null;
+  saveState(); render();
+}
+
+function addPlaceItem(name, note) {
+  if (!activePlaceId) return;
+  const place = state.places.find(p => p.id === activePlaceId);
+  if (!place) return;
+  if (!place.items) place.items = [];
+  place.items.push({ id: 'pli_' + Date.now(), name, note: note || null, checked: false });
+  saveState(); render();
+}
+
+function togglePlaceItem(placeId, itemId) {
+  const place = state.places.find(p => p.id === placeId);
+  if (!place) return;
+  const item = place.items.find(i => i.id === itemId);
+  if (item) item.checked = !item.checked;
+  saveState(); render();
+}
+
+function removePlaceItem(placeId, itemId) {
+  const place = state.places.find(p => p.id === placeId);
+  if (!place) return;
+  place.items = place.items.filter(i => i.id !== itemId);
+  saveState(); render();
+}
+
+function clearPlaceChecked(placeId) {
+  const place = state.places.find(p => p.id === placeId);
+  if (!place) return;
+  if (!confirm(`Remove all checked items from ${place.name}?`)) return;
+  place.items = place.items.filter(i => !i.checked);
+  saveState(); render();
+}
+
+let editingPlaceNoteRef = null;
+function editPlaceItemNote(placeId, itemId) {
+  const place = state.places.find(p => p.id === placeId);
+  if (!place) return;
+  const item = place.items.find(i => i.id === itemId);
+  if (!item) return;
+  editingPlaceNoteRef = { placeId, itemId };
+  document.getElementById('editNoteInput').value = item.note || '';
+  document.getElementById('editNoteModal').classList.add('open');
+  setTimeout(() => document.getElementById('editNoteInput').focus(), 100);
+}
 
 // ─── THEME ───────────────────────────────────────────────────────────────────
 const THEMES = [
