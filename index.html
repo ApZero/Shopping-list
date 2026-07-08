@@ -347,7 +347,28 @@
     white-space: nowrap;
   }
 
-  /* AUTOCOMPLETE */
+  #placeItemInput {
+    width: 100%; padding: 11px 14px;
+    border: 1.5px solid var(--border); border-radius: 12px;
+    font-size: 1rem; background: var(--surface); color: var(--text);
+    outline: none; -webkit-appearance: none;
+  }
+  #placeItemInput:focus { border-color: var(--accent); }
+  #placeItemAddBtn {
+    padding: 11px 16px; border: none; border-radius: 12px;
+    background: var(--accent); color: white;
+    font-size: 1rem; font-weight: 700; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #placeItemAddBtn:active { opacity: 0.8; }
+
+  /* CONFIG MODAL */
+  .config-section { margin-bottom: 20px; }
+  .config-section-title {
+    font-size: 0.72rem; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
   .autocomplete-list {
     position: absolute; bottom: calc(100% + 6px); left: 0; right: 0;
     background: var(--surface); border: 1.5px solid var(--border);
@@ -431,13 +452,13 @@
   <h1>🛒 My Supermarket</h1>
   <div class="header-actions">
     <button class="icon-btn" id="themeBtn" title="Change theme">🎨</button>
-    <button class="icon-btn" id="clearCheckedBtn" title="Remove checked">🗑</button>
+    <button class="icon-btn" id="configBtn" title="Configuration">⚙️</button>
+    <button class="icon-btn" id="clearCheckedBtn" title="Clear list">🗑</button>
   </div>
 </header>
 
 <div class="tabs">
   <button class="tab active" data-tab="list">Shopping List</button>
-  <button class="tab" data-tab="manage">Sections</button>
   <button class="tab" data-tab="places">Places</button>
 </div>
 
@@ -486,6 +507,15 @@
     <p class="modal-subtitle">Choose a colour palette</p>
     <div style="display:flex;flex-direction:column;gap:8px" id="themeList"></div>
     <button class="modal-cancel" id="themeModalCancel">Close</button>
+  </div>
+</div>
+
+<!-- Modal: config -->
+<div class="modal-overlay" id="configModal">
+  <div class="modal" style="max-height:85vh;overflow-y:auto">
+    <h2>⚙️ Configuration</h2>
+    <div id="configModalContent"></div>
+    <button class="modal-cancel" id="configModalCancel">Close</button>
   </div>
 </div>
 
@@ -566,10 +596,9 @@ let editingSectionColor = null;
 // ─── RENDER ──────────────────────────────────────────────────────────────────
 function render() {
   if (currentTab === 'list') renderList();
-  else if (currentTab === 'manage') renderManage();
   else if (currentTab === 'places') renderPlaces();
   document.getElementById('bottomBar').style.display = currentTab === 'list' ? '' : 'none';
-  document.getElementById('placesBar').style.display = currentTab === 'places' ? '' : 'none';
+  document.getElementById('placesBar').style.display = currentTab === 'places' && activePlaceId ? '' : 'none';
 }
 
 function renderList() {
@@ -869,13 +898,23 @@ function pickEditColor(el, color) {
 document.getElementById('editSectionSave').onclick = () => {
   const name = document.getElementById('editSectionName').value.trim();
   if (!name) return alert('Please enter a name.');
-  const s = state.sections.find(s => s.id === editingSectionId);
-  if (s) { s.name = name; s.emoji = editingSectionEmoji; s.color = editingSectionColor; }
+  if (editingPlaceId) {
+    const p = state.places.find(p => p.id === editingPlaceId);
+    if (p) { p.name = name; p.emoji = editingSectionEmoji; }
+    editingPlaceId = null;
+  } else {
+    const s = state.sections.find(s => s.id === editingSectionId);
+    if (s) { s.name = name; s.emoji = editingSectionEmoji; s.color = editingSectionColor; }
+  }
+  document.getElementById('editColorPicker').style.display = '';
   saveState();
   document.getElementById('editSectionModal').classList.remove('open');
+  renderConfigContent();
   render();
 };
 document.getElementById('editSectionCancel').onclick = () => {
+  editingPlaceId = null;
+  document.getElementById('editColorPicker').style.display = '';
   document.getElementById('editSectionModal').classList.remove('open');
 };
 
@@ -1147,6 +1186,8 @@ document.getElementById('placeItemInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('placeItemAddBtn').click();
 });
 
+document.getElementById('configBtn').onclick = openConfig;
+
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tab').forEach(btn => {
   btn.onclick = () => {
@@ -1171,27 +1212,14 @@ function renderPlaces() {
   if (state.places.length === 0) {
     main.innerHTML = `<div class="empty-state">
       <div class="emoji">📍</div>
-      <p>No places yet.<br>Add a place like Farmacia or Ferretería.</p>
-    </div>
-    <div class="add-section-form" style="margin-top:0">
-      <div class="form-label">New place</div>
-      <div class="form-row">
-        <input class="form-input" id="newPlaceName" placeholder="e.g. Farmacia" />
-        <button class="primary-btn" style="width:auto;padding:10px 16px" onclick="addPlace()">Add</button>
-      </div>
+      <p>No places yet.<br>Tap ⚙️ to add a place like Farmacia or Ferretería.</p>
     </div>`;
     placeBar.style.display = 'none';
     activePlaceId = null;
     return;
   }
 
-  let html = `<div class="add-section-form">
-    <div class="form-label">New place</div>
-    <div class="form-row">
-      <input class="form-input" id="newPlaceName" placeholder="e.g. Farmacia" />
-      <button class="primary-btn" style="width:auto;padding:10px 16px" onclick="addPlace()">Add</button>
-    </div>
-  </div>`;
+  let html = '';
 
   state.places.forEach(place => {
     const items = place.items || [];
@@ -1200,12 +1228,13 @@ function renderPlaces() {
     const allDone = items.length > 0 && unchecked.length === 0;
     const isActive = activePlaceId === place.id;
 
-    html += `<div class="section-card" style="border-left-color:${place.color || '#888'}">
+    html += `<div class="section-card" style="border-left-color:${place.color || '#888'};${isActive ? 'box-shadow:0 0 0 2px '+place.color+';' : ''}">
       <div class="section-header">
-        <div class="section-title-row" onclick="selectPlace('${place.id}')">
+        <div class="section-title-row" onclick="selectPlace('${place.id}')" style="cursor:pointer">
           <span class="section-emoji">${place.emoji || '📍'}</span>
           <span class="section-name">${escHtml(place.name)}</span>
           ${items.length > 0 ? `<span class="section-count">${unchecked.length}/${items.length}</span>` : ''}
+          ${isActive ? `<span style="font-size:0.72rem;color:${place.color};font-weight:700;margin-left:4px">● adding</span>` : ''}
         </div>
         <div style="display:flex;gap:6px;align-items:center">
           ${allDone && items.length > 0 ? `<button class="small-btn" onclick="clearPlaceChecked('${place.id}')">Clear</button>` : ''}
@@ -1213,8 +1242,10 @@ function renderPlaces() {
         </div>
       </div>`;
 
-    if (items.length === 0 && !isActive) {
-      html += `<div style="padding:8px 12px 12px;color:var(--muted);font-size:0.85rem">Tap to add items</div>`;
+    if (items.length === 0) {
+      html += `<div style="padding:8px 12px 12px;color:var(--muted);font-size:0.85rem;font-style:italic">
+        ${isActive ? 'Type an item in the bar below…' : 'Tap to select and add items'}
+      </div>`;
     }
 
     if (items.length > 0) {
@@ -1319,6 +1350,157 @@ function editPlaceItemNote(placeId, itemId) {
   document.getElementById('editNoteModal').classList.add('open');
   setTimeout(() => document.getElementById('editNoteInput').focus(), 100);
 }
+
+// ─── CONFIG MODAL ────────────────────────────────────────────────────────────
+const PLACE_EMOJIS = ['📍','🏥','🔧','🛍️','💊','🧰','🏪','🏬','🐾','🌿','🍺','📦','✂️','👓','🔌','🚗','🎨','📚'];
+
+let configNewSectionEmoji = SECTION_EMOJIS[0];
+let configNewSectionColor = SECTION_COLORS[0];
+let configNewPlaceEmoji = '📍';
+
+function openConfig() {
+  renderConfigContent();
+  document.getElementById('configModal').classList.add('open');
+}
+
+function renderConfigContent() {
+  const content = document.getElementById('configModalContent');
+  let html = '';
+
+  // ── SECTIONS ──
+  html += `<div class="config-section">
+    <div class="config-section-title">Supermarket Sections</div>`;
+
+  if (state.sections.length === 0) {
+    html += `<p style="font-size:0.85rem;color:var(--muted);margin-bottom:10px">No sections yet.</p>`;
+  } else {
+    state.sections.forEach((s, idx) => {
+      const productCount = state.products.filter(p => p.sectionId === s.id).length;
+      html += `<div class="manage-section-item" style="border-left-color:${s.color}">
+        <span class="drag-handle">⠿</span>
+        <div class="manage-section-info" style="flex:1">
+          <div class="manage-section-name">${s.emoji} ${escHtml(s.name)}</div>
+          <div class="manage-section-sub">${productCount} product${productCount!==1?'s':''}</div>
+        </div>
+        <div class="manage-section-actions">
+          <button class="small-btn" onclick="moveSection(${idx},-1);renderConfigContent()">↑</button>
+          <button class="small-btn" onclick="moveSection(${idx},1);renderConfigContent()">↓</button>
+          <button class="small-btn" onclick="openEditSection('${s.id}')">Edit</button>
+          <button class="small-btn danger" onclick="deleteSection('${s.id}');renderConfigContent()">✕</button>
+        </div>
+      </div>`;
+    });
+  }
+
+  html += `<div style="margin-top:12px">
+    <div class="form-label">New section</div>
+    <div class="form-row"><input class="form-input" id="newSectionName" placeholder="Name…" /></div>
+    <div class="form-label">Icon</div>
+    <div class="emoji-picker">${SECTION_EMOJIS.map(e=>`<span class="emoji-opt${e===configNewSectionEmoji?' selected':''}" onclick="configSelectSectionEmoji(this,'${e}')">${e}</span>`).join('')}</div>
+    <div class="form-label">Color</div>
+    <div class="color-picker">${SECTION_COLORS.map(c=>`<div class="color-opt${c===configNewSectionColor?' selected':''}" style="background:${c}" onclick="configSelectSectionColor(this,'${c}')"></div>`).join('')}</div>
+    <button class="primary-btn" onclick="addSection();renderConfigContent()">Add Section</button>
+  </div></div>`;
+
+  // ── PLACES ──
+  html += `<div class="config-section" style="margin-top:20px">
+    <div class="config-section-title">Places</div>`;
+
+  if (state.places.length === 0) {
+    html += `<p style="font-size:0.85rem;color:var(--muted);margin-bottom:10px">No places yet.</p>`;
+  } else {
+    state.places.forEach(p => {
+      html += `<div class="manage-section-item" style="border-left-color:${p.color}">
+        <div class="manage-section-info" style="flex:1">
+          <div class="manage-section-name">${p.emoji} ${escHtml(p.name)}</div>
+          <div class="manage-section-sub">${(p.items||[]).length} item${(p.items||[]).length!==1?'s':''}</div>
+        </div>
+        <div class="manage-section-actions">
+          <button class="small-btn" onclick="openEditPlace('${p.id}')">Edit</button>
+          <button class="small-btn danger" onclick="deletePlaceFromConfig('${p.id}')">✕</button>
+        </div>
+      </div>`;
+    });
+  }
+
+  html += `<div style="margin-top:12px">
+    <div class="form-label">New place</div>
+    <div class="form-row"><input class="form-input" id="newPlaceNameConfig" placeholder="e.g. Farmacia…" /></div>
+    <div class="form-label">Icon</div>
+    <div class="emoji-picker">${PLACE_EMOJIS.map(e=>`<span class="emoji-opt${e===configNewPlaceEmoji?' selected':''}" onclick="configSelectPlaceEmoji(this,'${e}')">${e}</span>`).join('')}</div>
+    <button class="primary-btn" onclick="addPlaceFromConfig()">Add Place</button>
+  </div></div>`;
+
+  content.innerHTML = html;
+}
+
+function configSelectSectionEmoji(el, emoji) {
+  document.querySelectorAll('#configModalContent .emoji-picker:first-of-type .emoji-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected'); configNewSectionEmoji = emoji;
+}
+function configSelectSectionColor(el, color) {
+  document.querySelectorAll('#configModalContent .color-picker .color-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected'); configNewSectionColor = color;
+}
+function configSelectPlaceEmoji(el, emoji) {
+  // find the emoji-picker that contains this el and deselect siblings
+  el.closest('.emoji-picker').querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected'); configNewPlaceEmoji = emoji;
+}
+
+function addSection() {
+  const nameEl = document.getElementById('newSectionName');
+  const name = nameEl ? nameEl.value.trim() : '';
+  if (!name) return;
+  state.sections.push({
+    id: 'sec_' + Date.now(), name,
+    emoji: configNewSectionEmoji, color: configNewSectionColor,
+    collapsed: false, productsCollapsed: true
+  });
+  if (nameEl) nameEl.value = '';
+  saveState(); render();
+}
+
+function addPlaceFromConfig() {
+  const nameEl = document.getElementById('newPlaceNameConfig');
+  const name = nameEl ? nameEl.value.trim() : '';
+  if (!name) return;
+  const placeColors = ['#1565C0','#6A1B9A','#E65100','#00695C','#AD1457','#37474F','#4E342E','#0277BD'];
+  const color = placeColors[state.places.length % placeColors.length];
+  state.places.push({ id: 'pl_' + Date.now(), name, color, emoji: configNewPlaceEmoji, items: [] });
+  if (nameEl) nameEl.value = '';
+  configNewPlaceEmoji = '📍';
+  saveState(); render(); renderConfigContent();
+}
+
+function deletePlaceFromConfig(id) {
+  const place = state.places.find(p => p.id === id);
+  if (!confirm(`Delete "${place?.name}"?`)) return;
+  state.places = state.places.filter(p => p.id !== id);
+  if (activePlaceId === id) activePlaceId = null;
+  saveState(); render(); renderConfigContent();
+}
+
+// Edit place emoji/name modal reuses editSectionModal
+let editingPlaceId = null;
+function openEditPlace(id) {
+  const place = state.places.find(p => p.id === id);
+  if (!place) return;
+  editingPlaceId = id;
+  document.getElementById('editSectionName').value = place.name;
+  const picker = document.getElementById('editEmojiPicker');
+  picker.innerHTML = PLACE_EMOJIS.map(e =>
+    `<span class="emoji-opt${e===place.emoji?' selected':''}" onclick="selectEditEmoji(this,'${e}')">${e}</span>`
+  ).join('');
+  editingSectionEmoji = place.emoji;
+  // hide color picker for places
+  document.getElementById('editColorPicker').style.display = 'none';
+  document.getElementById('editSectionModal').classList.add('open');
+}
+
+document.getElementById('configModalCancel').onclick = () => {
+  document.getElementById('configModal').classList.remove('open');
+};
 
 // ─── THEME ───────────────────────────────────────────────────────────────────
 const THEMES = [
