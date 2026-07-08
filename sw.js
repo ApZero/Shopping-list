@@ -1,4 +1,4 @@
-const CACHE = 'grocery-v8';
+const CACHE = 'grocery-v9';
 const ASSETS = ['./index.html', './manifest.json', './icon.svg', './sw.js'];
 
 self.addEventListener('install', e => {
