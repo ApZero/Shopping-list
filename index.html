@@ -483,9 +483,13 @@
 <div class="bottom-bar" id="placesBar" style="display:none">
   <div class="input-row">
     <div class="item-input-wrap">
-      <input type="text" id="placeItemInput" placeholder="Add item to place…" autocomplete="off" />
+      <input type="text" id="placeItemInput" placeholder="Add item…" autocomplete="off" />
     </div>
     <button id="placeItemAddBtn">Add</button>
+  </div>
+  <div class="note-row" id="placeNoteRow">
+    <span class="note-label">Note:</span>
+    <input type="text" id="placeNoteInput" placeholder="amount, specifics…" autocomplete="off" />
   </div>
 </div>
 
@@ -526,6 +530,16 @@
     <p class="modal-subtitle" id="assignModalSubtitle"></p>
     <div class="section-choose-list" id="sectionChooseList"></div>
     <button class="modal-cancel" id="assignModalCancel">Cancel</button>
+  </div>
+</div>
+
+<!-- Modal: pick place for new item -->
+<div class="modal-overlay" id="placePickModal">
+  <div class="modal">
+    <h2>Add to which place?</h2>
+    <p class="modal-subtitle" id="placePickSubtitle"></p>
+    <div class="section-choose-list" id="placePickList"></div>
+    <button class="modal-cancel" id="placePickCancel">Cancel</button>
   </div>
 </div>
 
@@ -1175,16 +1189,66 @@ document.addEventListener('click', e => {
 });
 
 // ─── PLACES INPUT BAR ────────────────────────────────────────────────────────
-document.getElementById('placeItemAddBtn').onclick = () => {
+let pendingPlaceItem = null;
+
+document.getElementById('placeItemInput').addEventListener('input', () => {
   const val = document.getElementById('placeItemInput').value.trim();
-  if (!val) return;
-  addPlaceItem(val);
-  document.getElementById('placeItemInput').value = '';
-  document.getElementById('placeItemInput').focus();
+  const noteRow = document.getElementById('placeNoteRow');
+  if (val.length > 0) noteRow.classList.add('visible');
+  else noteRow.classList.remove('visible');
+});
+
+document.getElementById('placeItemAddBtn').onclick = () => {
+  const name = document.getElementById('placeItemInput').value.trim();
+  if (!name) return;
+  const note = document.getElementById('placeNoteInput').value.trim();
+  if (state.places.length === 0) { alert('Add a place first via ⚙️'); return; }
+  if (state.places.length === 1) {
+    // Only one place — add directly
+    addPlaceItem(state.places[0].id, name, note);
+    document.getElementById('placeItemInput').value = '';
+    document.getElementById('placeNoteInput').value = '';
+    document.getElementById('placeNoteRow').classList.remove('visible');
+  } else {
+    // Multiple places — show picker
+    pendingPlaceItem = { name, note };
+    openPlacePicker(name);
+  }
 };
+
 document.getElementById('placeItemInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('placeItemAddBtn').click();
 });
+document.getElementById('placeNoteInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('placeItemAddBtn').click();
+});
+
+function openPlacePicker(name) {
+  document.getElementById('placePickSubtitle').textContent = `Where does "${name}" go?`;
+  document.getElementById('placePickList').innerHTML = state.places.map(p =>
+    `<button class="section-choose-btn" style="border-color:${p.color}" onclick="confirmPlacePick('${p.id}')">
+      <span class="section-choose-emoji">${p.emoji || '📍'}</span>
+      <span class="section-choose-name">${escHtml(p.name)}</span>
+    </button>`
+  ).join('');
+  document.getElementById('placePickModal').classList.add('open');
+}
+
+function confirmPlacePick(placeId) {
+  if (!pendingPlaceItem) return;
+  addPlaceItem(placeId, pendingPlaceItem.name, pendingPlaceItem.note);
+  pendingPlaceItem = null;
+  document.getElementById('placePickModal').classList.remove('open');
+  document.getElementById('placeItemInput').value = '';
+  document.getElementById('placeNoteInput').value = '';
+  document.getElementById('placeNoteRow').classList.remove('visible');
+  document.getElementById('placeItemInput').focus();
+}
+
+document.getElementById('placePickCancel').onclick = () => {
+  pendingPlaceItem = null;
+  document.getElementById('placePickModal').classList.remove('open');
+};
 
 document.getElementById('configBtn').onclick = openConfig;
 
@@ -1193,7 +1257,6 @@ document.querySelectorAll('.tab').forEach(btn => {
   btn.onclick = () => {
     currentTab = btn.dataset.tab;
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === btn));
-    if (currentTab !== 'places') activePlaceId = null;
     render();
   };
 });
@@ -1202,23 +1265,23 @@ document.querySelectorAll('.tab').forEach(btn => {
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escAttr(s) { return String(s).replace(/'/g,"\\'"); }
 
-let activePlaceId = null; // which place's input bar is active
+let activePlaceId = null; // kept for backward compat, no longer used for selection
 
 // ─── PLACES ──────────────────────────────────────────────────────────────────
 function renderPlaces() {
   const main = document.getElementById('mainContent');
   const placeBar = document.getElementById('placesBar');
+  placeBar.style.display = '';
 
   if (state.places.length === 0) {
     main.innerHTML = `<div class="empty-state">
       <div class="emoji">📍</div>
       <p>No places yet.<br>Tap ⚙️ to add a place like Farmacia or Ferretería.</p>
     </div>`;
-    placeBar.style.display = 'none';
-    activePlaceId = null;
     return;
   }
 
+  const donePlaces = [];
   let html = '';
 
   state.places.forEach(place => {
@@ -1226,39 +1289,35 @@ function renderPlaces() {
     const unchecked = items.filter(i => !i.checked);
     const checked = items.filter(i => i.checked);
     const allDone = items.length > 0 && unchecked.length === 0;
-    const isActive = activePlaceId === place.id;
 
-    html += `<div class="section-card" style="border-left-color:${place.color || '#888'};${isActive ? 'box-shadow:0 0 0 2px '+place.color+';' : ''}">
-      <div class="section-header">
-        <div class="section-title-row" onclick="selectPlace('${place.id}')" style="cursor:pointer">
+    if (allDone) { donePlaces.push(place); return; }
+
+    const isCollapsed = place.collapsed || false;
+    const all = [...unchecked, ...checked];
+
+    html += `<div class="section-card" style="border-left-color:${place.color || '#888'}">
+      <div class="section-header" onclick="togglePlace('${place.id}')">
+        <div class="section-title-row">
           <span class="section-emoji">${place.emoji || '📍'}</span>
           <span class="section-name">${escHtml(place.name)}</span>
           ${items.length > 0 ? `<span class="section-count">${unchecked.length}/${items.length}</span>` : ''}
-          ${isActive ? `<span style="font-size:0.72rem;color:${place.color};font-weight:700;margin-left:4px">● adding</span>` : ''}
         </div>
-        <div style="display:flex;gap:6px;align-items:center">
-          ${allDone && items.length > 0 ? `<button class="small-btn" onclick="clearPlaceChecked('${place.id}')">Clear</button>` : ''}
-          <button class="small-btn danger" onclick="deletePlace('${place.id}')">✕</button>
-        </div>
+        <span class="section-collapse-btn ${isCollapsed ? 'collapsed' : ''}">▼</span>
       </div>`;
 
-    if (items.length === 0) {
-      html += `<div style="padding:8px 12px 12px;color:var(--muted);font-size:0.85rem;font-style:italic">
-        ${isActive ? 'Type an item in the bar below…' : 'Tap to select and add items'}
-      </div>`;
-    }
-
-    if (items.length > 0) {
+    if (!isCollapsed) {
       html += `<div class="section-items">`;
-      [...unchecked, ...checked].forEach(item => {
+      if (all.length === 0) {
+        html += `<p style="font-size:0.85rem;color:var(--muted);padding:4px 0 8px;font-style:italic">No items yet — type below to add</p>`;
+      }
+      all.forEach(item => {
         html += `<div class="item-row">
           <button class="item-check ${item.checked ? 'checked' : ''}" onclick="togglePlaceItem('${place.id}','${item.id}')">
             ${item.checked ? '✓' : ''}
           </button>
-          <div class="item-label-wrap">
+          <div class="item-label-wrap" onclick="editPlaceItemNote('${place.id}','${item.id}')">
             <div class="item-label ${item.checked ? 'checked' : ''}">${escHtml(item.name)}</div>
-            ${item.note ? `<div class="item-note" onclick="editPlaceItemNote('${place.id}','${item.id}')">${escHtml(item.note)}</div>`
-              : `<div class="item-note item-note-empty" onclick="editPlaceItemNote('${place.id}','${item.id}')"></div>`}
+            ${item.note ? `<div class="item-note">${escHtml(item.note)}</div>` : ''}
           </div>
           <button class="item-delete" onclick="removePlaceItem('${place.id}','${item.id}')">✕</button>
         </div>`;
@@ -1268,22 +1327,36 @@ function renderPlaces() {
     html += `</div>`;
   });
 
-  main.innerHTML = html;
-
-  // Update place input bar placeholder
-  if (activePlaceId) {
-    const place = state.places.find(p => p.id === activePlaceId);
-    document.getElementById('placeItemInput').placeholder = place ? `Add item to ${place.name}…` : 'Add item…';
-    placeBar.style.display = '';
-  } else {
-    placeBar.style.display = 'none';
+  // Done strip
+  if (donePlaces.length > 0) {
+    html += `<div class="done-strip">
+      <span class="done-strip-label">Done</span>
+      <div class="done-chips">
+        ${donePlaces.map(p => `
+          <button class="done-chip" title="${escHtml(p.name)}"
+            style="border-color:${p.color};color:${p.color}"
+            onclick="togglePlace('${p.id}')">
+            ${p.emoji || '📍'}
+          </button>`).join('')}
+      </div>
+    </div>`;
   }
+
+  main.innerHTML = html;
 }
 
-function selectPlace(id) {
-  activePlaceId = activePlaceId === id ? null : id;
-  render();
-  if (activePlaceId) setTimeout(() => document.getElementById('placeItemInput').focus(), 100);
+function togglePlace(id) {
+  const place = state.places.find(p => p.id === id);
+  if (!place) return;
+  // If it was in "done" state (all checked), uncollapse it
+  const items = place.items || [];
+  const allDone = items.length > 0 && items.every(i => i.checked);
+  if (allDone) {
+    place.collapsed = false;
+  } else {
+    place.collapsed = !place.collapsed;
+  }
+  saveState(); render();
 }
 
 function addPlace() {
@@ -1307,12 +1380,12 @@ function deletePlace(id) {
   saveState(); render();
 }
 
-function addPlaceItem(name, note) {
-  if (!activePlaceId) return;
-  const place = state.places.find(p => p.id === activePlaceId);
+function addPlaceItem(placeId, name, note) {
+  const place = state.places.find(p => p.id === placeId);
   if (!place) return;
   if (!place.items) place.items = [];
   place.items.push({ id: 'pli_' + Date.now(), name, note: note || null, checked: false });
+  place.collapsed = false;
   saveState(); render();
 }
 
@@ -1321,6 +1394,10 @@ function togglePlaceItem(placeId, itemId) {
   if (!place) return;
   const item = place.items.find(i => i.id === itemId);
   if (item) item.checked = !item.checked;
+  // Auto-collapse when all done
+  if (place.items.length > 0 && place.items.every(i => i.checked)) {
+    place.collapsed = true;
+  }
   saveState(); render();
 }
 
