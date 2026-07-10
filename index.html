@@ -612,7 +612,7 @@ function render() {
   if (currentTab === 'list') renderList();
   else if (currentTab === 'places') renderPlaces();
   document.getElementById('bottomBar').style.display = currentTab === 'list' ? '' : 'none';
-  document.getElementById('placesBar').style.display = currentTab === 'places' && activePlaceId ? '' : 'none';
+  document.getElementById('placesBar').style.display = currentTab === 'places' ? '' : 'none';
 }
 
 function renderList() {
@@ -1270,8 +1270,6 @@ let activePlaceId = null; // kept for backward compat, no longer used for select
 // ─── PLACES ──────────────────────────────────────────────────────────────────
 function renderPlaces() {
   const main = document.getElementById('mainContent');
-  const placeBar = document.getElementById('placesBar');
-  placeBar.style.display = '';
 
   if (state.places.length === 0) {
     main.innerHTML = `<div class="empty-state">
