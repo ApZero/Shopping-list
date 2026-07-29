@@ -362,6 +362,32 @@
   }
   #placeItemAddBtn:active { opacity: 0.8; }
 
+  .config-tabs {
+    display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 14px;
+  }
+  .config-tab {
+    flex: 1; padding: 9px 4px; font-size: 0.88rem; font-weight: 600;
+    border: none; background: none; cursor: pointer; color: var(--muted);
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .config-tab.active { color: var(--accent); border-color: var(--accent); }
+
+  .config-add-form { margin-top: 12px; }
+  .config-add-row-inline { display: flex; gap: 8px; align-items: center; }
+  .cfg-emoji-input {
+    width: 52px; flex-shrink: 0; text-align: center;
+    font-size: 1.4rem; padding: 8px 4px;
+  }
+  .cfg-add-btn {
+    padding: 11px 16px; border: none; border-radius: 10px;
+    background: var(--accent); color: white; font-size: 0.9rem;
+    font-weight: 700; cursor: pointer; white-space: nowrap;
+    flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+  }
+  .cfg-add-btn:active { opacity: 0.8; }
+  .cfg-hint { font-size: 0.72rem; color: var(--muted); margin-top: 5px; }
+
   /* CONFIG ROWS */
   .config-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
   .config-row {
@@ -538,10 +564,14 @@
 
 <!-- Modal: config -->
 <div class="modal-overlay" id="configModal">
-  <div class="modal" style="max-height:85vh;overflow-y:auto">
-    <h2>⚙️ Configuration</h2>
-    <div id="configModalContent"></div>
-    <button class="modal-cancel" id="configModalCancel">Close</button>
+  <div class="modal" style="max-height:90vh;display:flex;flex-direction:column;padding-bottom:0">
+    <h2 style="flex-shrink:0">⚙️ Editor</h2>
+    <div class="config-tabs" style="flex-shrink:0">
+      <button class="config-tab active" id="cfgTabSections" onclick="switchConfigTab('sections')">Sections</button>
+      <button class="config-tab" id="cfgTabPlaces" onclick="switchConfigTab('places')">Places</button>
+    </div>
+    <div id="configModalContent" style="flex:1;overflow-y:auto;padding-bottom:16px"></div>
+    <button class="modal-cancel" id="configModalCancel" style="flex-shrink:0;margin:0;border-radius:0 0 20px 20px;border-top:1px solid var(--border)">Close</button>
   </div>
 </div>
 
@@ -583,12 +613,12 @@
 <!-- Modal: edit section -->
 <div class="modal-overlay" id="editSectionModal">
   <div class="modal">
-    <h2>Edit section</h2>
+    <h2 id="editSectionModalTitle">Edit</h2>
     <p class="form-label">Name</p>
-    <input type="text" class="modal-input" id="editSectionName" placeholder="Section name" />
-    <p class="form-label">Icon</p>
-    <div class="emoji-picker" id="editEmojiPicker"></div>
-    <p class="form-label">Color</p>
+    <input type="text" class="modal-input" id="editSectionName" placeholder="Name" style="margin-bottom:12px" />
+    <p class="form-label">Icon <span style="font-size:0.75rem;color:var(--muted)">(any emoji from your keyboard)</span></p>
+    <input type="text" class="form-input cfg-emoji-input" id="editEmojiInput" maxlength="2" placeholder="🛒" style="margin-bottom:12px;font-size:1.5rem;text-align:center;width:56px" />
+    <p class="form-label" id="editColorLabel">Color</p>
     <div class="color-picker" id="editColorPicker"></div>
     <div class="modal-btn-row">
       <button class="modal-primary" id="editSectionSave">Save</button>
@@ -857,18 +887,6 @@ function renderManage() {
 }
 
 // ─── SECTION ACTIONS ─────────────────────────────────────────────────────────
-function addSection() {
-  const name = document.getElementById('newSectionName').value.trim();
-  if (!name) return alert('Please enter a section name.');
-  state.sections.push({
-    id: 'sec_' + Date.now(), name,
-    emoji: window._selectedEmoji || '🛒',
-    color: window._selectedColor || '#2E7D32',
-    collapsed: false, productsCollapsed: true
-  });
-  saveState(); render();
-}
-
 function deleteSection(id) {
   if (!confirm('Delete this section? Products assigned to it will become unassigned.')) return;
   state.sections = state.sections.filter(s => s.id !== id);
@@ -903,28 +921,18 @@ function selectColor(el, color) {
 function openEditSection(id) {
   const s = state.sections.find(s => s.id === id);
   if (!s) return;
-  editingSectionId = id;
-  editingSectionEmoji = s.emoji;
+  editingSectionId = id; editingPlaceId = null;
   editingSectionColor = s.color;
-
+  document.getElementById('editSectionModalTitle').textContent = 'Edit Section';
   document.getElementById('editSectionName').value = s.name;
-
-  const ep = document.getElementById('editEmojiPicker');
-  ep.innerHTML = SECTION_EMOJIS.map(e =>
-    `<span class="emoji-opt ${e===s.emoji?'selected':''}" onclick="pickEditEmoji(this,'${e}')">${e}</span>`
-  ).join('');
-
+  document.getElementById('editEmojiInput').value = s.emoji;
   const cp = document.getElementById('editColorPicker');
+  cp.style.display = '';
+  document.getElementById('editColorLabel').style.display = '';
   cp.innerHTML = SECTION_COLORS.map(c =>
     `<div class="color-opt ${c===s.color?'selected':''}" style="background:${c}" onclick="pickEditColor(this,'${c}')"></div>`
   ).join('');
-
   document.getElementById('editSectionModal').classList.add('open');
-}
-function pickEditEmoji(el, emoji) {
-  document.getElementById('editEmojiPicker').querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
-  el.classList.add('selected');
-  editingSectionEmoji = emoji;
 }
 function pickEditColor(el, color) {
   document.getElementById('editColorPicker').querySelectorAll('.color-opt').forEach(e => e.classList.remove('selected'));
@@ -933,24 +941,26 @@ function pickEditColor(el, color) {
 }
 document.getElementById('editSectionSave').onclick = () => {
   const name = document.getElementById('editSectionName').value.trim();
+  const emoji = document.getElementById('editEmojiInput').value.trim() || '🛒';
   if (!name) return alert('Please enter a name.');
   if (editingPlaceId) {
     const p = state.places.find(p => p.id === editingPlaceId);
-    if (p) { p.name = name; p.emoji = editingSectionEmoji; }
+    if (p) { p.name = name; p.emoji = emoji; }
     editingPlaceId = null;
   } else {
     const s = state.sections.find(s => s.id === editingSectionId);
-    if (s) { s.name = name; s.emoji = editingSectionEmoji; s.color = editingSectionColor; }
+    if (s) { s.name = name; s.emoji = emoji; s.color = editingSectionColor; }
   }
   document.getElementById('editColorPicker').style.display = '';
+  document.getElementById('editColorLabel').style.display = '';
   saveState();
   document.getElementById('editSectionModal').classList.remove('open');
-  renderConfigContent();
-  render();
+  renderConfigContent(); render();
 };
 document.getElementById('editSectionCancel').onclick = () => {
   editingPlaceId = null;
   document.getElementById('editColorPicker').style.display = '';
+  document.getElementById('editColorLabel').style.display = '';
   document.getElementById('editSectionModal').classList.remove('open');
 };
 
@@ -1455,123 +1465,118 @@ function editPlaceItemNote(placeId, itemId) {
 }
 
 // ─── CONFIG MODAL ────────────────────────────────────────────────────────────
-const PLACE_EMOJIS = ['📍','🏥','🔧','🛍️','💊','🧰','🏪','🏬','🐾','🌿','🍺','📦','✂️','👓','🔌','🚗','🎨','📚'];
+let configTab = 'sections';
 
-let configNewSectionEmoji = SECTION_EMOJIS[0];
-let configNewSectionColor = SECTION_COLORS[0];
-let configNewPlaceEmoji = '📍';
+function switchConfigTab(tab) {
+  configTab = tab;
+  document.getElementById('cfgTabSections').classList.toggle('active', tab === 'sections');
+  document.getElementById('cfgTabPlaces').classList.toggle('active', tab === 'places');
+  renderConfigContent();
+}
 
 function openConfig() {
-  renderConfigContent();
   document.getElementById('configModal').classList.add('open');
+  renderConfigContent();
+}
+
+function moveSection(idx, dir) {
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= state.sections.length) return;
+  [state.sections[idx], state.sections[newIdx]] = [state.sections[newIdx], state.sections[idx]];
+  saveState(); render(); renderConfigContent();
 }
 
 function renderConfigContent() {
   const content = document.getElementById('configModalContent');
-  let html = '';
 
-  // ── SECTIONS ──
-  html += `<div class="config-section">
-    <div class="config-section-title">Supermarket Sections <span style="font-size:0.75rem;color:var(--muted);font-weight:400">tap ↑↓ to reorder</span></div>`;
+  if (configTab === 'sections') {
+    let html = `<div class="config-section">`;
 
-  if (state.sections.length === 0) {
-    html += `<p style="font-size:0.85rem;color:var(--muted);margin-bottom:10px">No sections yet.</p>`;
+    if (state.sections.length === 0) {
+      html += `<p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">No sections yet. Add one below.</p>`;
+    } else {
+      html += `<div class="config-list">`;
+      state.sections.forEach((s, idx) => {
+        const productCount = state.products.filter(p => p.sectionId === s.id).length;
+        html += `<div class="config-row">
+          <span class="config-emoji">${s.emoji}</span>
+          <div class="config-info">
+            <span class="config-name">${escHtml(s.name)}</span>
+            <span class="config-sub">${productCount} product${productCount!==1?'s':''}</span>
+          </div>
+          <div class="config-actions">
+            <button class="cfg-btn" onclick="moveSection(${idx},-1)" ${idx===0?'disabled':''}>↑</button>
+            <button class="cfg-btn" onclick="moveSection(${idx},1)" ${idx===state.sections.length-1?'disabled':''}>↓</button>
+            <button class="cfg-btn" onclick="openEditSection('${s.id}')">✏️</button>
+            <button class="cfg-btn danger" onclick="deleteSection('${s.id}');renderConfigContent()">✕</button>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+
+    html += `<div class="config-add-form">
+      <div class="config-add-row-inline">
+        <input class="form-input cfg-emoji-input" id="newSectionEmoji" maxlength="2" placeholder="🛒" />
+        <input class="form-input" id="newSectionName" placeholder="Section name…" style="flex:1" />
+        <button class="cfg-add-btn" onclick="addSection()">Add</button>
+      </div>
+      <p class="cfg-hint">Type any emoji from your keyboard in the left field</p>
+    </div></div>`;
+    content.innerHTML = html;
+
   } else {
-    html += `<div class="config-list">`;
-    state.sections.forEach((s, idx) => {
-      const productCount = state.products.filter(p => p.sectionId === s.id).length;
-      html += `<div class="config-row">
-        <span class="config-emoji">${s.emoji}</span>
-        <div class="config-info">
-          <span class="config-name">${escHtml(s.name)}</span>
-          <span class="config-sub">${productCount} product${productCount!==1?'s':''}</span>
-        </div>
-        <div class="config-actions">
-          <button class="cfg-btn" onclick="moveSection(${idx},-1);renderConfigContent()" ${idx===0?'disabled':''}>↑</button>
-          <button class="cfg-btn" onclick="moveSection(${idx},1);renderConfigContent()" ${idx===state.sections.length-1?'disabled':''}>↓</button>
-          <button class="cfg-btn" onclick="openEditSection('${s.id}')">✏️</button>
-          <button class="cfg-btn danger" onclick="deleteSection('${s.id}');renderConfigContent()">✕</button>
-        </div>
-      </div>`;
-    });
-    html += `</div>`;
+    let html = `<div class="config-section">`;
+
+    if (state.places.length === 0) {
+      html += `<p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">No places yet. Add one below.</p>`;
+    } else {
+      html += `<div class="config-list">`;
+      state.places.forEach(p => {
+        html += `<div class="config-row">
+          <span class="config-emoji">${p.emoji || '📍'}</span>
+          <div class="config-info">
+            <span class="config-name">${escHtml(p.name)}</span>
+            <span class="config-sub">${(p.items||[]).filter(i=>!i.checked).length} pending</span>
+          </div>
+          <div class="config-actions">
+            <button class="cfg-btn" onclick="openEditPlace('${p.id}')">✏️</button>
+            <button class="cfg-btn danger" onclick="deletePlaceFromConfig('${p.id}')">✕</button>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+
+    html += `<div class="config-add-form">
+      <div class="config-add-row-inline">
+        <input class="form-input cfg-emoji-input" id="newPlaceEmoji" maxlength="2" placeholder="📍" />
+        <input class="form-input" id="newPlaceNameConfig" placeholder="Place name…" style="flex:1" />
+        <button class="cfg-add-btn" onclick="addPlaceFromConfig()">Add</button>
+      </div>
+      <p class="cfg-hint">Type any emoji from your keyboard in the left field</p>
+    </div></div>`;
+    content.innerHTML = html;
   }
-
-  html += `<div class="config-add-row">
-    <input class="form-input" id="newSectionName" placeholder="New section name…" style="flex:1;margin-bottom:0" />
-    <div class="emoji-picker" style="margin:8px 0 0">${SECTION_EMOJIS.map(e=>`<span class="emoji-opt${e===configNewSectionEmoji?' selected':''}" onclick="configSelectSectionEmoji(this,'${e}')">${e}</span>`).join('')}</div>
-    <button class="primary-btn" style="margin-top:8px" onclick="addSection();renderConfigContent()">Add Section</button>
-  </div></div>`;
-
-  // ── PLACES ──
-  html += `<div class="config-section" style="margin-top:16px">
-    <div class="config-section-title">Places</div>`;
-
-  if (state.places.length === 0) {
-    html += `<p style="font-size:0.85rem;color:var(--muted);margin-bottom:10px">No places yet.</p>`;
-  } else {
-    html += `<div class="config-list">`;
-    state.places.forEach(p => {
-      html += `<div class="config-row">
-        <span class="config-emoji">${p.emoji || '📍'}</span>
-        <div class="config-info">
-          <span class="config-name">${escHtml(p.name)}</span>
-          <span class="config-sub">${(p.items||[]).length} item${(p.items||[]).length!==1?'s':''}</span>
-        </div>
-        <div class="config-actions">
-          <button class="cfg-btn" onclick="openEditPlace('${p.id}')">✏️</button>
-          <button class="cfg-btn danger" onclick="deletePlaceFromConfig('${p.id}')">✕</button>
-        </div>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-
-  html += `<div class="config-add-row">
-    <input class="form-input" id="newPlaceNameConfig" placeholder="New place name…" style="flex:1;margin-bottom:0" />
-    <div class="emoji-picker" style="margin:8px 0 0">${PLACE_EMOJIS.map(e=>`<span class="emoji-opt${e===configNewPlaceEmoji?' selected':''}" onclick="configSelectPlaceEmoji(this,'${e}')">${e}</span>`).join('')}</div>
-    <button class="primary-btn" style="margin-top:8px" onclick="addPlaceFromConfig()">Add Place</button>
-  </div></div>`;
-
-  content.innerHTML = html;
-}
-
-function configSelectSectionEmoji(el, emoji) {
-  document.querySelectorAll('#configModalContent .emoji-picker:first-of-type .emoji-opt').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected'); configNewSectionEmoji = emoji;
-}
-function configSelectSectionColor(el, color) {
-  document.querySelectorAll('#configModalContent .color-picker .color-opt').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected'); configNewSectionColor = color;
-}
-function configSelectPlaceEmoji(el, emoji) {
-  // find the emoji-picker that contains this el and deselect siblings
-  el.closest('.emoji-picker').querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected'); configNewPlaceEmoji = emoji;
 }
 
 function addSection() {
-  const nameEl = document.getElementById('newSectionName');
-  const name = nameEl ? nameEl.value.trim() : '';
+  const name = (document.getElementById('newSectionName')?.value || '').trim();
+  const emoji = (document.getElementById('newSectionEmoji')?.value || '').trim() || '🛒';
   if (!name) return;
-  state.sections.push({
-    id: 'sec_' + Date.now(), name,
-    emoji: configNewSectionEmoji, color: configNewSectionColor,
-    collapsed: false, productsCollapsed: true
-  });
-  if (nameEl) nameEl.value = '';
-  saveState(); render();
+  const colors = ['#2E7D32','#1565C0','#6A1B9A','#E65100','#00695C','#AD1457','#F57F17','#37474F','#4E342E','#0277BD'];
+  const color = colors[state.sections.length % colors.length];
+  state.sections.push({ id: 'sec_' + Date.now(), name, emoji, color, collapsed: false, productsCollapsed: true });
+  saveState(); render(); renderConfigContent();
 }
 
 function addPlaceFromConfig() {
-  const nameEl = document.getElementById('newPlaceNameConfig');
-  const name = nameEl ? nameEl.value.trim() : '';
+  const name = (document.getElementById('newPlaceNameConfig')?.value || '').trim();
+  const emoji = (document.getElementById('newPlaceEmoji')?.value || '').trim() || '📍';
   if (!name) return;
-  const placeColors = ['#1565C0','#6A1B9A','#E65100','#00695C','#AD1457','#37474F','#4E342E','#0277BD'];
-  const color = placeColors[state.places.length % placeColors.length];
-  state.places.push({ id: 'pl_' + Date.now(), name, color, emoji: configNewPlaceEmoji, items: [] });
-  if (nameEl) nameEl.value = '';
-  configNewPlaceEmoji = '📍';
+  const colors = ['#1565C0','#6A1B9A','#E65100','#00695C','#AD1457','#37474F','#4E342E','#0277BD'];
+  const color = colors[state.places.length % colors.length];
+  state.places.push({ id: 'pl_' + Date.now(), name, color, emoji, items: [] });
   saveState(); render(); renderConfigContent();
 }
 
@@ -1579,24 +1584,19 @@ function deletePlaceFromConfig(id) {
   const place = state.places.find(p => p.id === id);
   if (!confirm(`Delete "${place?.name}"?`)) return;
   state.places = state.places.filter(p => p.id !== id);
-  if (activePlaceId === id) activePlaceId = null;
   saveState(); render(); renderConfigContent();
 }
 
-// Edit place emoji/name modal reuses editSectionModal
 let editingPlaceId = null;
 function openEditPlace(id) {
   const place = state.places.find(p => p.id === id);
   if (!place) return;
-  editingPlaceId = id;
+  editingPlaceId = id; editingSectionId = null;
+  document.getElementById('editSectionModalTitle').textContent = 'Edit Place';
   document.getElementById('editSectionName').value = place.name;
-  const picker = document.getElementById('editEmojiPicker');
-  picker.innerHTML = PLACE_EMOJIS.map(e =>
-    `<span class="emoji-opt${e===place.emoji?' selected':''}" onclick="selectEditEmoji(this,'${e}')">${e}</span>`
-  ).join('');
-  editingSectionEmoji = place.emoji;
-  // hide color picker for places
+  document.getElementById('editEmojiInput').value = place.emoji || '📍';
   document.getElementById('editColorPicker').style.display = 'none';
+  document.getElementById('editColorLabel').style.display = 'none';
   document.getElementById('editSectionModal').classList.add('open');
 }
 
