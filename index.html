@@ -362,6 +362,28 @@
   }
   #placeItemAddBtn:active { opacity: 0.8; }
 
+  /* CONFIG ROWS */
+  .config-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .config-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg); border-radius: 10px; padding: 8px 10px;
+  }
+  .config-emoji { font-size: 1.3rem; flex-shrink: 0; }
+  .config-info { flex: 1; min-width: 0; }
+  .config-name { font-weight: 600; font-size: 0.9rem; display: block; }
+  .config-sub { font-size: 0.72rem; color: var(--muted); }
+  .config-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .cfg-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 7px; padding: 4px 8px; font-size: 0.82rem;
+    cursor: pointer; color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cfg-btn:disabled { opacity: 0.3; cursor: default; }
+  .cfg-btn.danger { color: var(--danger); border-color: #f5c6cb; }
+  .cfg-btn:active:not(:disabled) { background: var(--border); }
+  .config-add-row { display: flex; flex-direction: column; }
+
   /* CONFIG MODAL */
   .config-section { margin-bottom: 20px; }
   .config-section-title {
@@ -1071,6 +1093,9 @@ function addItem(name) {
   const known = state.products.find(p => p.name.toLowerCase() === name.toLowerCase());
   if (known) {
     state.listItems.push({ id: 'li_' + Date.now(), name: known.name, note, checked: false });
+    // Auto-expand the section
+    const section = state.sections.find(s => s.id === known.sectionId);
+    if (section) section.collapsed = false;
     saveState(); render();
     document.getElementById('noteInput').value = '';
     document.getElementById('noteRow').classList.remove('visible');
@@ -1105,6 +1130,9 @@ function assignSection(sectionId) {
   const { name, note } = pendingNewItem;
   state.products.push({ id: 'p_' + Date.now(), name, sectionId });
   state.listItems.push({ id: 'li_' + Date.now(), name, note, checked: false });
+  // Auto-expand the section
+  const section = state.sections.find(s => s.id === sectionId);
+  if (section) section.collapsed = false;
   saveState();
   pendingNewItem = null;
   closeAssignModal();
@@ -1116,8 +1144,8 @@ function assignSection(sectionId) {
 function assignOthers() {
   if (!pendingNewItem) return;
   const { name, note } = pendingNewItem;
-  // Add to list as a one-off, not saved to products
   state.listItems.push({ id: 'li_' + Date.now(), name, note, checked: false, isOther: true });
+  state.othersCollapsed = false;
   saveState();
   pendingNewItem = null;
   closeAssignModal();
@@ -1444,66 +1472,65 @@ function renderConfigContent() {
 
   // ── SECTIONS ──
   html += `<div class="config-section">
-    <div class="config-section-title">Supermarket Sections</div>`;
+    <div class="config-section-title">Supermarket Sections <span style="font-size:0.75rem;color:var(--muted);font-weight:400">tap ↑↓ to reorder</span></div>`;
 
   if (state.sections.length === 0) {
     html += `<p style="font-size:0.85rem;color:var(--muted);margin-bottom:10px">No sections yet.</p>`;
   } else {
+    html += `<div class="config-list">`;
     state.sections.forEach((s, idx) => {
       const productCount = state.products.filter(p => p.sectionId === s.id).length;
-      html += `<div class="manage-section-item" style="border-left-color:${s.color}">
-        <span class="drag-handle">⠿</span>
-        <div class="manage-section-info" style="flex:1">
-          <div class="manage-section-name">${s.emoji} ${escHtml(s.name)}</div>
-          <div class="manage-section-sub">${productCount} product${productCount!==1?'s':''}</div>
+      html += `<div class="config-row">
+        <span class="config-emoji">${s.emoji}</span>
+        <div class="config-info">
+          <span class="config-name">${escHtml(s.name)}</span>
+          <span class="config-sub">${productCount} product${productCount!==1?'s':''}</span>
         </div>
-        <div class="manage-section-actions">
-          <button class="small-btn" onclick="moveSection(${idx},-1);renderConfigContent()">↑</button>
-          <button class="small-btn" onclick="moveSection(${idx},1);renderConfigContent()">↓</button>
-          <button class="small-btn" onclick="openEditSection('${s.id}')">Edit</button>
-          <button class="small-btn danger" onclick="deleteSection('${s.id}');renderConfigContent()">✕</button>
+        <div class="config-actions">
+          <button class="cfg-btn" onclick="moveSection(${idx},-1);renderConfigContent()" ${idx===0?'disabled':''}>↑</button>
+          <button class="cfg-btn" onclick="moveSection(${idx},1);renderConfigContent()" ${idx===state.sections.length-1?'disabled':''}>↓</button>
+          <button class="cfg-btn" onclick="openEditSection('${s.id}')">✏️</button>
+          <button class="cfg-btn danger" onclick="deleteSection('${s.id}');renderConfigContent()">✕</button>
         </div>
       </div>`;
     });
+    html += `</div>`;
   }
 
-  html += `<div style="margin-top:12px">
-    <div class="form-label">New section</div>
-    <div class="form-row"><input class="form-input" id="newSectionName" placeholder="Name…" /></div>
-    <div class="form-label">Icon</div>
-    <div class="emoji-picker">${SECTION_EMOJIS.map(e=>`<span class="emoji-opt${e===configNewSectionEmoji?' selected':''}" onclick="configSelectSectionEmoji(this,'${e}')">${e}</span>`).join('')}</div>
-    <div class="form-label">Color</div>
-    <div class="color-picker">${SECTION_COLORS.map(c=>`<div class="color-opt${c===configNewSectionColor?' selected':''}" style="background:${c}" onclick="configSelectSectionColor(this,'${c}')"></div>`).join('')}</div>
-    <button class="primary-btn" onclick="addSection();renderConfigContent()">Add Section</button>
+  html += `<div class="config-add-row">
+    <input class="form-input" id="newSectionName" placeholder="New section name…" style="flex:1;margin-bottom:0" />
+    <div class="emoji-picker" style="margin:8px 0 0">${SECTION_EMOJIS.map(e=>`<span class="emoji-opt${e===configNewSectionEmoji?' selected':''}" onclick="configSelectSectionEmoji(this,'${e}')">${e}</span>`).join('')}</div>
+    <button class="primary-btn" style="margin-top:8px" onclick="addSection();renderConfigContent()">Add Section</button>
   </div></div>`;
 
   // ── PLACES ──
-  html += `<div class="config-section" style="margin-top:20px">
+  html += `<div class="config-section" style="margin-top:16px">
     <div class="config-section-title">Places</div>`;
 
   if (state.places.length === 0) {
     html += `<p style="font-size:0.85rem;color:var(--muted);margin-bottom:10px">No places yet.</p>`;
   } else {
+    html += `<div class="config-list">`;
     state.places.forEach(p => {
-      html += `<div class="manage-section-item" style="border-left-color:${p.color}">
-        <div class="manage-section-info" style="flex:1">
-          <div class="manage-section-name">${p.emoji} ${escHtml(p.name)}</div>
-          <div class="manage-section-sub">${(p.items||[]).length} item${(p.items||[]).length!==1?'s':''}</div>
+      html += `<div class="config-row">
+        <span class="config-emoji">${p.emoji || '📍'}</span>
+        <div class="config-info">
+          <span class="config-name">${escHtml(p.name)}</span>
+          <span class="config-sub">${(p.items||[]).length} item${(p.items||[]).length!==1?'s':''}</span>
         </div>
-        <div class="manage-section-actions">
-          <button class="small-btn" onclick="openEditPlace('${p.id}')">Edit</button>
-          <button class="small-btn danger" onclick="deletePlaceFromConfig('${p.id}')">✕</button>
+        <div class="config-actions">
+          <button class="cfg-btn" onclick="openEditPlace('${p.id}')">✏️</button>
+          <button class="cfg-btn danger" onclick="deletePlaceFromConfig('${p.id}')">✕</button>
         </div>
       </div>`;
     });
+    html += `</div>`;
   }
 
-  html += `<div style="margin-top:12px">
-    <div class="form-label">New place</div>
-    <div class="form-row"><input class="form-input" id="newPlaceNameConfig" placeholder="e.g. Farmacia…" /></div>
-    <div class="form-label">Icon</div>
-    <div class="emoji-picker">${PLACE_EMOJIS.map(e=>`<span class="emoji-opt${e===configNewPlaceEmoji?' selected':''}" onclick="configSelectPlaceEmoji(this,'${e}')">${e}</span>`).join('')}</div>
-    <button class="primary-btn" onclick="addPlaceFromConfig()">Add Place</button>
+  html += `<div class="config-add-row">
+    <input class="form-input" id="newPlaceNameConfig" placeholder="New place name…" style="flex:1;margin-bottom:0" />
+    <div class="emoji-picker" style="margin:8px 0 0">${PLACE_EMOJIS.map(e=>`<span class="emoji-opt${e===configNewPlaceEmoji?' selected':''}" onclick="configSelectPlaceEmoji(this,'${e}')">${e}</span>`).join('')}</div>
+    <button class="primary-btn" style="margin-top:8px" onclick="addPlaceFromConfig()">Add Place</button>
   </div></div>`;
 
   content.innerHTML = html;
