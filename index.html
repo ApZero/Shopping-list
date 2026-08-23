@@ -12,72 +12,49 @@
 <style>
   /* ── THEMES ── */
   :root {
-    --bg: #F7F5F0;
-    --surface: #FFFFFF;
-    --border: #E4E0D8;
-    --text: #1A1A1A;
-    --muted: #888;
-    --accent: #2E7D32;
-    --accent-light: #e8f5e9;
-    --danger: #C62828;
-    --shadow: 0 2px 12px rgba(0,0,0,0.08);
-    --radius: 14px;
+    --bg: #F4F1EB;
+    --surface: #FDFCF9;
+    --border: #DED9D0;
+    --text: #1A1714;
+    --muted: #8A8480;
+    --accent: #3D6B40;
+    --accent-light: #E6EFE6;
+    --danger: #B84040;
+    --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+    --radius: 12px;
+    --header-h: 52px;
   }
   [data-theme="forest"] {
-    --bg: #EEF2EC;
-    --surface: #F8FAF7;
-    --border: #C8D5C2;
-    --text: #1C2B1A;
-    --muted: #6B856A;
-    --accent: #3A6B35;
-    --accent-light: #dceedd;
-    --danger: #B74040;
-    --shadow: 0 2px 12px rgba(30,60,20,0.10);
+    --bg: #EBF0E8; --surface: #F5F9F4; --border: #BED0B8;
+    --text: #1B2B19; --muted: #678062; --accent: #2E6030;
+    --accent-light: #D6EAD6; --danger: #A03030;
+    --shadow: 0 1px 4px rgba(20,50,20,0.08), 0 4px 16px rgba(20,50,20,0.06);
   }
   [data-theme="earth"] {
-    --bg: #F2EDE6;
-    --surface: #FAF7F3;
-    --border: #D9CDBF;
-    --text: #2B1F14;
-    --muted: #8C7A6A;
-    --accent: #8B5E3C;
-    --accent-light: #f3e9df;
-    --danger: #B74040;
-    --shadow: 0 2px 12px rgba(80,50,20,0.10);
+    --bg: #EFE9E1; --surface: #F8F4EF; --border: #D4C8B8;
+    --text: #28190E; --muted: #8A7060; --accent: #7A4F28;
+    --accent-light: #EEE0D0; --danger: #A03030;
+    --shadow: 0 1px 4px rgba(60,30,10,0.08), 0 4px 16px rgba(60,30,10,0.06);
   }
   [data-theme="stone"] {
-    --bg: #EDEAE5;
-    --surface: #F6F4F1;
-    --border: #CEC8C0;
-    --text: #1E1C19;
-    --muted: #7A756D;
-    --accent: #6B6254;
-    --accent-light: #eae7e1;
-    --danger: #B74040;
-    --shadow: 0 2px 12px rgba(50,45,35,0.10);
+    --bg: #ECEAE6; --surface: #F5F4F1; --border: #CAC6C0;
+    --text: #1C1B19; --muted: #787470; --accent: #5C5650;
+    --accent-light: #E4E2DE; --danger: #A03030;
+    --shadow: 0 1px 4px rgba(40,38,34,0.08), 0 4px 16px rgba(40,38,34,0.06);
   }
   [data-theme="dark"] {
-    --bg: #141414;
-    --surface: #1F1F1F;
-    --border: #2E2E2E;
-    --text: #E8E8E8;
-    --muted: #666;
-    --accent: #5aad60;
-    --accent-light: #1a2e1c;
-    --danger: #e05c5c;
-    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+    --bg: #131313; --surface: #1C1C1C; --border: #2A2A2A;
+    --text: #E6E6E6; --muted: #646464; --accent: #4E9E55;
+    --accent-light: #182B1A; --danger: #D45050;
+    --shadow: 0 1px 4px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.25);
   }
   [data-theme="dark-earth"] {
-    --bg: #181410;
-    --surface: #221D18;
-    --border: #332B22;
-    --text: #E8DDD0;
-    --muted: #7A6A58;
-    --accent: #C4885A;
-    --accent-light: #2b1f13;
-    --danger: #e05c5c;
-    --shadow: 0 2px 12px rgba(0,0,0,0.5);
+    --bg: #161210; --surface: #1E1914; --border: #2E2620;
+    --text: #E4D8C8; --muted: #726254; --accent: #B87840;
+    --accent-light: #281E10; --danger: #D45050;
+    --shadow: 0 1px 4px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.3);
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -85,413 +62,331 @@
     min-height: 100dvh; padding-bottom: 130px;
   }
 
-  /* HEADER */
+  /* ── HEADER ── */
   header {
     position: sticky; top: 0; z-index: 100;
     background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 14px 16px 10px;
+    padding: 0 14px; height: var(--header-h);
     display: flex; align-items: center; justify-content: space-between;
   }
-  header h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.3px; }
-  .header-actions { display: flex; gap: 8px; }
+  header h1 { font-size: 1rem; font-weight: 700; letter-spacing: -0.2px; }
+  .header-actions { display: flex; gap: 2px; }
   .icon-btn {
-    background: none; border: none; font-size: 1.3rem; cursor: pointer;
-    padding: 4px 6px; border-radius: 8px; color: var(--text);
-    -webkit-tap-highlight-color: transparent;
+    background: none; border: none; font-size: 1.2rem; cursor: pointer;
+    padding: 6px 8px; border-radius: 8px; color: var(--text);
+    -webkit-tap-highlight-color: transparent; line-height: 1;
   }
   .icon-btn:active { background: var(--border); }
 
-  /* TABS */
+  /* ── TABS ── */
   .tabs {
-    display: flex; border-bottom: 2px solid var(--border);
-    background: var(--surface); padding: 0 16px;
+    display: flex; border-bottom: 1px solid var(--border);
+    background: var(--surface); padding: 0 14px; gap: 0;
   }
   .tab {
-    flex: 1; padding: 10px 4px; font-size: 0.85rem; font-weight: 600;
+    flex: 1; padding: 9px 4px; font-size: 0.82rem; font-weight: 600;
     border: none; background: none; cursor: pointer; color: var(--muted);
-    border-bottom: 2px solid transparent; margin-bottom: -2px;
-    transition: color 0.15s, border-color 0.15s;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
     -webkit-tap-highlight-color: transparent;
   }
   .tab.active { color: var(--accent); border-color: var(--accent); }
 
-  main { padding: 12px 14px; }
+  main { padding: 10px 12px; }
 
-  /* EMPTY STATE */
-  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
-  .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
-  .empty-state p { font-size: 0.95rem; line-height: 1.5; }
+  /* ── EMPTY STATE ── */
+  .empty-state { text-align: center; padding: 50px 20px; color: var(--muted); }
+  .empty-state .emoji { font-size: 2.5rem; margin-bottom: 10px; }
+  .empty-state p { font-size: 0.9rem; line-height: 1.5; }
 
-  /* SECTION CARDS */
+  /* ── SECTION CARDS ── */
   .section-card {
     background: var(--surface); border-radius: var(--radius);
-    margin-bottom: 12px; box-shadow: var(--shadow);
-    overflow: hidden; border-left: 5px solid #ccc;
+    margin-bottom: 8px; box-shadow: var(--shadow);
+    overflow: hidden; border-left: 4px solid #ccc;
   }
   .section-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 12px; cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
+    padding: 8px 10px; cursor: pointer; -webkit-tap-highlight-color: transparent;
   }
-  .section-title-row { display: flex; align-items: center; gap: 8px; }
-  .section-emoji { font-size: 1.2rem; }
-  .section-name { font-weight: 700; font-size: 0.95rem; }
+  .section-title-row { display: flex; align-items: center; gap: 7px; }
+  .section-emoji { font-size: 1.1rem; line-height: 1; }
+  .section-name { font-weight: 700; font-size: 0.88rem; }
   .section-count {
-    font-size: 0.75rem; color: var(--muted);
-    background: var(--bg); border-radius: 20px; padding: 1px 8px;
+    font-size: 0.7rem; color: var(--muted);
+    background: var(--bg); border-radius: 20px; padding: 1px 7px;
   }
-  .section-collapse-btn { font-size: 0.85rem; color: var(--muted); transition: transform 0.2s; }
+  .section-collapse-btn { font-size: 0.75rem; color: var(--muted); transition: transform 0.2s; }
   .section-collapse-btn.collapsed { transform: rotate(-90deg); }
-  .section-items { padding: 0 12px 8px; }
+  .section-items { padding: 0 10px 6px; }
 
-  /* ITEM ROW */
+  /* ── ITEM ROW ── */
   .item-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 9px 0; border-bottom: 1px solid var(--bg);
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 0; border-bottom: 1px solid var(--bg);
   }
   .item-row:last-child { border-bottom: none; }
   .item-check {
-    width: 24px; height: 24px; border-radius: 50%;
-    border: 2px solid var(--border); background: none;
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1.5px solid var(--border); background: none;
     cursor: pointer; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.75rem; color: transparent; transition: all 0.15s;
+    font-size: 0.7rem; color: transparent; transition: all 0.12s;
     -webkit-tap-highlight-color: transparent;
   }
   .item-check.checked { background: var(--accent); border-color: var(--accent); color: white; }
   .item-label-wrap { flex: 1; min-width: 0; cursor: pointer; }
   .item-label {
-    font-size: 0.95rem; transition: opacity 0.15s, text-decoration 0.15s;
+    font-size: 0.9rem; transition: opacity 0.12s;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .item-label.checked { opacity: 0.4; text-decoration: line-through; }
-  .item-note { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
+  .item-label.checked { opacity: 0.35; text-decoration: line-through; }
+  .item-note { font-size: 0.72rem; color: var(--muted); margin-top: 0; line-height: 1.3; }
   .item-delete {
-    background: none; border: none; color: #ddd; font-size: 1.1rem;
-    cursor: pointer; padding: 4px; flex-shrink: 0;
+    background: none; border: none; color: var(--border); font-size: 1rem;
+    cursor: pointer; padding: 4px 2px; flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
   }
   .item-delete:active { color: var(--danger); }
 
-  /* LIST TOOLBAR */
+  /* ── TWO-COLUMN ITEMS ── */
+  .section-items.two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px;
+  }
+  .section-items.two-col .item-row { border-bottom: 1px solid var(--bg); }
+
   /* ── DONE STRIP ── */
   .done-strip {
-    margin-top: 4px;
-    padding: 8px 12px;
-    background: var(--surface);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    display: flex; align-items: center; gap: 10px;
+    margin-top: 2px; padding: 6px 10px;
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow); display: flex; align-items: center; gap: 8px;
   }
   .done-strip-label {
-    font-size: 0.72rem; font-weight: 700; color: var(--muted);
+    font-size: 0.68rem; font-weight: 700; color: var(--muted);
     text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0;
   }
-  .done-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .done-chips { display: flex; flex-wrap: wrap; gap: 5px; }
   .done-chip {
-    font-size: 1.3rem; width: 40px; height: 40px;
-    border-radius: 10px; border: 2px solid;
-    background: none; cursor: pointer;
+    font-size: 1.2rem; width: 36px; height: 36px; border-radius: 8px;
+    border: 1.5px solid; background: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    opacity: 0.55; transition: opacity 0.15s;
-    -webkit-tap-highlight-color: transparent;
+    opacity: 0.5; transition: opacity 0.12s; -webkit-tap-highlight-color: transparent;
   }
   .done-chip:active { opacity: 1; }
 
-  .list-toolbar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  /* ── LIST TOOLBAR ── */
+  .list-toolbar { display: flex; justify-content: flex-end; margin-bottom: 6px; }
   .clear-btn {
-    font-size: 0.8rem; color: var(--danger); background: none;
-    border: 1px solid #f5c6cb; border-radius: 8px; padding: 4px 10px;
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    font-size: 0.75rem; color: var(--danger); background: none;
+    border: 1px solid var(--danger); border-radius: 7px; padding: 3px 9px;
+    cursor: pointer; opacity: 0.7; -webkit-tap-highlight-color: transparent;
   }
+  .clear-btn:active { opacity: 1; }
 
-  /* MANAGE SECTIONS */
-  .manage-section-item {
-    background: var(--surface); border-radius: var(--radius);
-    box-shadow: var(--shadow); margin-bottom: 10px;
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 14px; border-left: 5px solid #ccc;
+  /* ── FORMS ── */
+  .form-label {
+    font-size: 0.72rem; font-weight: 600; color: var(--muted);
+    margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: 0.04em;
   }
-  .manage-section-info { flex: 1; }
-  .manage-section-name { font-weight: 700; font-size: 0.95rem; }
-  .manage-section-sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
-  .manage-section-actions { display: flex; gap: 4px; flex-shrink: 0; }
-  .small-btn {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 8px; padding: 5px 10px;
-    font-size: 0.8rem; cursor: pointer; color: var(--text);
-    -webkit-tap-highlight-color: transparent;
-  }
-  .small-btn:active { background: var(--border); }
-  .small-btn.danger { color: var(--danger); border-color: #f5c6cb; }
-  .drag-handle { color: var(--muted); font-size: 1.1rem; cursor: grab; padding: 4px; }
-
-  /* ADD/EDIT SECTION FORM */
-  .add-section-form {
-    background: var(--surface); border-radius: var(--radius);
-    box-shadow: var(--shadow); padding: 14px; margin-bottom: 12px;
-  }
-  .form-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 12px; }
-  .form-label { font-size: 0.78rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; display: block; }
-  .form-row { display: flex; gap: 8px; margin-bottom: 10px; }
   .form-input {
-    flex: 1; padding: 10px 12px;
-    border: 1.5px solid var(--border); border-radius: 10px;
-    font-size: 0.95rem; background: var(--bg); color: var(--text); outline: none;
+    flex: 1; padding: 9px 11px;
+    border: 1.5px solid var(--border); border-radius: 9px;
+    font-size: 0.92rem; background: var(--bg); color: var(--text); outline: none;
   }
   .form-input:focus { border-color: var(--accent); }
-  .emoji-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-  .emoji-opt {
-    font-size: 1.4rem; padding: 4px; border-radius: 8px; cursor: pointer;
-    border: 2px solid transparent; -webkit-tap-highlight-color: transparent;
-  }
-  .emoji-opt.selected { border-color: var(--accent); background: var(--accent-light); }
-  .color-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-  .color-opt {
-    width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
-    border: 3px solid transparent; transition: transform 0.1s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .color-opt.selected { border-color: var(--text); transform: scale(1.15); }
-  .form-btn-row { display: flex; gap: 8px; }
   .primary-btn {
-    flex: 1; padding: 12px; border: none; border-radius: 10px;
-    background: var(--accent); color: white; font-size: 0.95rem; font-weight: 600;
+    width: 100%; padding: 11px; border: none; border-radius: 9px;
+    background: var(--accent); color: white; font-size: 0.92rem; font-weight: 600;
     cursor: pointer; -webkit-tap-highlight-color: transparent;
   }
   .primary-btn:active { opacity: 0.85; }
-  .secondary-btn {
-    padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 10px;
-    background: none; font-size: 0.95rem; color: var(--muted);
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-  }
 
-  /* PRODUCTS LIST inside section */
-  .products-section {
-    background: var(--surface); border-radius: var(--radius);
-    box-shadow: var(--shadow); margin-bottom: 10px;
-    border-left: 5px solid #ccc; overflow: hidden;
+  /* ── PRODUCTS LIST (in config) ── */
+  .cfg-products { margin: 6px 0 10px; display: flex; flex-direction: column; gap: 4px; }
+  .cfg-product-row {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface); border-radius: 8px; padding: 6px 8px;
+    border: 1px solid var(--border);
   }
-  .products-section-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 12px; cursor: pointer;
+  .cfg-product-name { flex: 1; font-size: 0.85rem; }
+  .cfg-product-btn {
+    background: none; border: none; font-size: 0.8rem; color: var(--muted);
+    cursor: pointer; padding: 3px 5px; border-radius: 5px;
     -webkit-tap-highlight-color: transparent;
   }
-  .products-list { padding: 0 12px 10px; }
-  .product-row {
-    display: flex; align-items: center; gap: 8px;
-    padding: 7px 0; border-bottom: 1px solid var(--bg);
-  }
-  .product-row:last-child { border-bottom: none; }
-  .product-name { flex: 1; font-size: 0.9rem; }
-  .product-edit-btn {
-    background: none; border: none; font-size: 0.85rem; color: var(--muted);
-    cursor: pointer; padding: 4px 6px; border-radius: 6px;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .product-edit-btn:active { background: var(--bg); }
-  .add-product-row {
-    display: flex; gap: 6px; margin-top: 8px; padding-top: 8px;
-    border-top: 1px solid var(--border);
-  }
-  .add-product-input {
-    flex: 1; padding: 8px 10px;
-    border: 1.5px solid var(--border); border-radius: 8px;
-    font-size: 0.9rem; background: var(--bg); color: var(--text); outline: none;
-  }
-  .add-product-input:focus { border-color: var(--accent); }
-  .add-product-btn {
-    padding: 8px 12px; border: none; border-radius: 8px;
-    background: var(--accent); color: white; font-size: 0.9rem;
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-  }
+  .cfg-product-btn:active { background: var(--bg); }
+  .cfg-product-btn.danger { color: var(--danger); }
 
-  /* BOTTOM INPUT BAR */
+  /* ── BOTTOM INPUT BAR ── */
   .bottom-bar {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
     background: var(--surface); border-top: 1px solid var(--border);
-    padding: 10px 14px max(16px, env(safe-area-inset-bottom));
+    padding: 8px 12px max(12px, env(safe-area-inset-bottom));
   }
-  .input-row { display: flex; gap: 8px; align-items: flex-end; position: relative; }
+  .input-row { display: flex; gap: 7px; align-items: center; position: relative; }
   .item-input-wrap { flex: 1; position: relative; }
-  #itemInput {
-    width: 100%; padding: 11px 14px;
-    border: 1.5px solid var(--border); border-radius: 12px;
-    font-size: 1rem; background: var(--surface); color: var(--text);
+  #itemInput, #placeItemInput {
+    width: 100%; padding: 10px 13px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 0.95rem; background: var(--bg); color: var(--text);
     outline: none; -webkit-appearance: none;
   }
-  #itemInput:focus { border-color: var(--accent); }
-  #addBtn {
-    padding: 11px 16px; border: none; border-radius: 12px;
+  #itemInput:focus, #placeItemInput:focus { border-color: var(--accent); }
+  #addBtn, #placeItemAddBtn {
+    padding: 10px 15px; border: none; border-radius: 10px;
     background: var(--accent); color: white;
-    font-size: 1rem; font-weight: 700; cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
+    font-size: 0.95rem; font-weight: 700; cursor: pointer;
+    -webkit-tap-highlight-color: transparent; flex-shrink: 0;
   }
-  #addBtn:active { opacity: 0.8; }
-
-  /* NOTE INPUT (appears below main input) */
+  #addBtn:active, #placeItemAddBtn:active { opacity: 0.8; }
   .note-row {
-    display: flex; gap: 8px; margin-top: 6px;
+    display: flex; gap: 7px; margin-top: 5px;
     max-height: 0; overflow: hidden; transition: max-height 0.2s;
   }
   .note-row.visible { max-height: 50px; }
-  #noteInput {
-    flex: 1; padding: 8px 12px;
-    border: 1.5px solid var(--border); border-radius: 10px;
-    font-size: 0.88rem; background: var(--surface); color: var(--muted);
+  #noteInput, #placeNoteInput {
+    flex: 1; padding: 7px 11px;
+    border: 1.5px solid var(--border); border-radius: 9px;
+    font-size: 0.84rem; background: var(--bg); color: var(--muted);
     outline: none; -webkit-appearance: none;
   }
-  #noteInput:focus { border-color: var(--accent); }
-  .note-label {
-    font-size: 0.75rem; color: var(--muted); align-self: center;
-    white-space: nowrap;
-  }
+  .note-label { font-size: 0.72rem; color: var(--muted); align-self: center; white-space: nowrap; }
 
-  #placeItemInput {
-    width: 100%; padding: 11px 14px;
-    border: 1.5px solid var(--border); border-radius: 12px;
-    font-size: 1rem; background: var(--surface); color: var(--text);
-    outline: none; -webkit-appearance: none;
-  }
-  #placeItemInput:focus { border-color: var(--accent); }
-  #placeItemAddBtn {
-    padding: 11px 16px; border: none; border-radius: 12px;
-    background: var(--accent); color: white;
-    font-size: 1rem; font-weight: 700; cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  #placeItemAddBtn:active { opacity: 0.8; }
-
-  .config-tabs {
-    display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 14px;
-  }
-  .config-tab {
-    flex: 1; padding: 9px 4px; font-size: 0.88rem; font-weight: 600;
-    border: none; background: none; cursor: pointer; color: var(--muted);
-    border-bottom: 2px solid transparent; margin-bottom: -2px;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .config-tab.active { color: var(--accent); border-color: var(--accent); }
-
-  .config-add-form { margin-top: 12px; }
-  .config-add-row-inline { display: flex; gap: 8px; align-items: center; }
-  .cfg-emoji-input {
-    width: 52px; flex-shrink: 0; text-align: center;
-    font-size: 1.4rem; padding: 8px 4px;
-  }
-  .cfg-add-btn {
-    padding: 11px 16px; border: none; border-radius: 10px;
-    background: var(--accent); color: white; font-size: 0.9rem;
-    font-weight: 700; cursor: pointer; white-space: nowrap;
-    flex-shrink: 0; -webkit-tap-highlight-color: transparent;
-  }
-  .cfg-add-btn:active { opacity: 0.8; }
-  .cfg-hint { font-size: 0.72rem; color: var(--muted); margin-top: 5px; }
-
-  /* CONFIG ROWS */
-  .config-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-  .config-row {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--bg); border-radius: 10px; padding: 8px 10px;
-  }
-  .config-emoji { font-size: 1.3rem; flex-shrink: 0; }
-  .config-info { flex: 1; min-width: 0; }
-  .config-name { font-weight: 600; font-size: 0.9rem; display: block; }
-  .config-sub { font-size: 0.72rem; color: var(--muted); }
-  .config-actions { display: flex; gap: 4px; flex-shrink: 0; }
-  .cfg-btn {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 7px; padding: 4px 8px; font-size: 0.82rem;
-    cursor: pointer; color: var(--text);
-    -webkit-tap-highlight-color: transparent;
-  }
-  .cfg-btn:disabled { opacity: 0.3; cursor: default; }
-  .cfg-btn.danger { color: var(--danger); border-color: #f5c6cb; }
-  .cfg-btn:active:not(:disabled) { background: var(--border); }
-  .config-add-row { display: flex; flex-direction: column; }
-
-  /* CONFIG MODAL */
-  .config-section { margin-bottom: 20px; }
-  .config-section-title {
-    font-size: 0.72rem; font-weight: 700; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.05em;
-    margin-bottom: 10px;
-  }
+  /* ── AUTOCOMPLETE ── */
   .autocomplete-list {
-    position: absolute; bottom: calc(100% + 6px); left: 0; right: 0;
+    position: absolute; bottom: calc(100% + 5px); left: 0; right: 0;
     background: var(--surface); border: 1.5px solid var(--border);
-    border-radius: 12px; box-shadow: var(--shadow);
-    max-height: 200px; overflow-y: auto; z-index: 200;
+    border-radius: 11px; box-shadow: var(--shadow);
+    max-height: 190px; overflow-y: auto; z-index: 200;
   }
   .autocomplete-item {
-    padding: 10px 14px; cursor: pointer;
-    display: flex; align-items: center; gap: 10px;
-    border-bottom: 1px solid var(--bg);
-    -webkit-tap-highlight-color: transparent;
+    padding: 9px 13px; cursor: pointer;
+    display: flex; align-items: center; gap: 9px;
+    border-bottom: 1px solid var(--bg); -webkit-tap-highlight-color: transparent;
   }
   .autocomplete-item:last-child { border-bottom: none; }
   .autocomplete-item:active { background: var(--bg); }
   .ac-section-chip {
-    font-size: 0.72rem; padding: 1px 7px; border-radius: 20px;
+    font-size: 0.68rem; padding: 1px 6px; border-radius: 20px;
     color: white; font-weight: 600; flex-shrink: 0;
   }
-  .ac-name { font-size: 0.95rem; flex: 1; }
+  .ac-name { font-size: 0.9rem; flex: 1; }
 
-  /* MODALS */
+  /* ── MODALS ── */
   .modal-overlay {
     display: none; position: fixed; inset: 0; z-index: 300;
-    background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
+    background: rgba(0,0,0,0.35); backdrop-filter: blur(3px);
     align-items: flex-end; justify-content: center;
   }
   .modal-overlay.open { display: flex; }
   .modal {
-    background: var(--surface); border-radius: 20px 20px 0 0;
-    padding: 20px 18px 32px; width: 100%; max-width: 480px;
-    animation: slideUp 0.2s ease;
-    max-height: 85vh; overflow-y: auto;
+    background: var(--surface); border-radius: 18px 18px 0 0;
+    padding: 18px 16px 28px; width: 100%; max-width: 480px;
+    animation: slideUp 0.18s ease; max-height: 88vh; overflow-y: auto;
   }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .modal h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
-  .modal-subtitle { font-size: 0.82rem; color: var(--muted); margin-bottom: 14px; }
-  .section-choose-list { display: flex; flex-direction: column; gap: 8px; }
+  .modal h2 { font-size: 1rem; font-weight: 700; margin-bottom: 5px; }
+  .modal-subtitle { font-size: 0.8rem; color: var(--muted); margin-bottom: 12px; }
+  .section-choose-list { display: flex; flex-direction: column; gap: 7px; max-height: 52vh; overflow-y: auto; }
   .section-choose-btn {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 14px; border-radius: 12px;
+    display: flex; align-items: center; gap: 9px;
+    padding: 11px 13px; border-radius: 10px;
     border: 1.5px solid var(--border); background: none; cursor: pointer;
-    text-align: left; -webkit-tap-highlight-color: transparent;
-  }
-  .section-choose-btn:active { background: var(--bg); }
-  .section-choose-emoji { font-size: 1.2rem; }
-  .section-choose-name { font-weight: 600; font-size: 0.95rem; }
-  .modal-cancel {
-    width: 100%; margin-top: 12px; padding: 12px;
-    border: 1.5px solid var(--border); border-radius: 12px;
-    background: none; font-size: 0.95rem; color: var(--muted); cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
-
-  /* EDIT PRODUCT MODAL */
+  .section-choose-btn:active { background: var(--bg); }
+  .section-choose-emoji { font-size: 1.1rem; }
+  .section-choose-name { font-weight: 600; font-size: 0.9rem; }
+  .modal-cancel {
+    width: 100%; margin-top: 10px; padding: 11px;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: none; font-size: 0.9rem; color: var(--muted); cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
   .modal-input {
-    width: 100%; padding: 11px 14px; margin-bottom: 10px;
-    border: 1.5px solid var(--border); border-radius: 10px;
-    font-size: 0.95rem; background: var(--bg); color: var(--text); outline: none;
+    width: 100%; padding: 10px 13px; margin-bottom: 10px;
+    border: 1.5px solid var(--border); border-radius: 9px;
+    font-size: 0.92rem; background: var(--bg); color: var(--text); outline: none;
   }
   .modal-input:focus { border-color: var(--accent); }
   .modal-btn-row { display: flex; gap: 8px; margin-top: 4px; }
   .modal-primary {
-    flex: 1; padding: 12px; border: none; border-radius: 10px;
-    background: var(--accent); color: white; font-size: 0.95rem; font-weight: 600;
+    flex: 1; padding: 11px; border: none; border-radius: 9px;
+    background: var(--accent); color: white; font-size: 0.92rem; font-weight: 600;
     cursor: pointer; -webkit-tap-highlight-color: transparent;
   }
   .modal-danger {
-    padding: 12px 16px; border: 1.5px solid #f5c6cb; border-radius: 10px;
-    background: none; color: var(--danger); font-size: 0.95rem;
+    padding: 11px 14px; border: 1px solid var(--danger); border-radius: 9px;
+    background: none; color: var(--danger); font-size: 0.92rem;
     cursor: pointer; -webkit-tap-highlight-color: transparent;
   }
 
-  /* DRAG */
-  .dragging { opacity: 0.5; }
-  .drag-over { outline: 2px dashed var(--accent); }
+  /* ── CONFIG MODAL ── */
+  .config-tabs {
+    display: flex; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+  }
+  .config-tab {
+    flex: 1; padding: 8px 4px; font-size: 0.85rem; font-weight: 600;
+    border: none; background: none; cursor: pointer; color: var(--muted);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .config-tab.active { color: var(--accent); border-color: var(--accent); }
+  .config-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+  .config-row {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--bg); border-radius: 9px; padding: 7px 9px;
+  }
+  .config-emoji { font-size: 1.2rem; flex-shrink: 0; line-height: 1; }
+  .config-info { flex: 1; min-width: 0; }
+  .config-name { font-weight: 600; font-size: 0.88rem; display: block; }
+  .config-sub { font-size: 0.7rem; color: var(--muted); }
+  .config-actions { display: flex; gap: 3px; flex-shrink: 0; }
+  .cfg-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 7px; font-size: 0.8rem;
+    cursor: pointer; color: var(--text); line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cfg-btn:disabled { opacity: 0.25; cursor: default; }
+  .cfg-btn.danger { color: var(--danger); }
+  .cfg-btn:active:not(:disabled) { background: var(--border); }
+  .active-btn { background: var(--accent-light) !important; color: var(--accent) !important; border-color: var(--accent) !important; }
+  .config-add-form { margin-top: 10px; }
+  .config-add-row-inline { display: flex; gap: 7px; align-items: center; }
+  .cfg-emoji-input {
+    width: 48px; flex-shrink: 0; text-align: center;
+    font-size: 1.3rem; padding: 7px 2px; border-radius: 9px;
+  }
+  .cfg-add-btn {
+    padding: 10px 14px; border: none; border-radius: 9px;
+    background: var(--accent); color: white; font-size: 0.88rem;
+    font-weight: 700; cursor: pointer; white-space: nowrap;
+    flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+  }
+  .cfg-add-btn:active { opacity: 0.8; }
+  .cfg-hint { font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+  .config-section { margin-bottom: 16px; }
+  .config-section-title {
+    font-size: 0.68rem; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
+  }
+  .small-btn {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 7px; padding: 4px 9px;
+    font-size: 0.78rem; cursor: pointer; color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .small-btn:active { background: var(--border); }
+  .small-btn.danger { color: var(--danger); }
+
+  /* ── THEME PICKER ── */
+  .color-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .color-opt {
+    width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+    border: 3px solid transparent; transition: transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .color-opt.selected { border-color: var(--text); transform: scale(1.15); }
 </style>
 </head>
 <body>
@@ -713,7 +608,7 @@ function renderList() {
         <span class="section-collapse-btn ${section.collapsed ? 'collapsed' : ''}">▼</span>
       </div>`;
     if (!section.collapsed) {
-      html += `<div class="section-items">`;
+      html += `<div class="section-items${section.twoCol?' two-col':''}">`;
       all.forEach(item => { html += renderItemRow(item); });
       html += `</div>`;
     }
@@ -1317,6 +1212,14 @@ function renderPlaces() {
     return;
   }
 
+  const checkedPlaceItems = state.places.reduce((acc, p) => acc + (p.items||[]).filter(i=>i.checked).length, 0);
+  let html = '';
+  if (checkedPlaceItems > 0) {
+    html += `<div class="list-toolbar">
+      <button class="clear-btn" onclick="clearAllPlaceChecked()">Remove ${checkedPlaceItems} checked</button>
+    </div>`;
+  }
+
   const donePlaces = [];
   let html = '';
 
@@ -1444,6 +1347,13 @@ function removePlaceItem(placeId, itemId) {
   saveState(); render();
 }
 
+function clearAllPlaceChecked() {
+  const total = state.places.reduce((a, p) => a + (p.items||[]).filter(i=>i.checked).length, 0);
+  if (!confirm(`Remove ${total} checked item${total!==1?'s':''}?`)) return;
+  state.places.forEach(p => { if (p.items) p.items = p.items.filter(i => !i.checked); });
+  saveState(); render();
+}
+
 function clearPlaceChecked(placeId) {
   const place = state.places.find(p => p.id === placeId);
   if (!place) return;
@@ -1462,6 +1372,34 @@ function editPlaceItemNote(placeId, itemId) {
   document.getElementById('editNoteInput').value = item.note || '';
   document.getElementById('editNoteModal').classList.add('open');
   setTimeout(() => document.getElementById('editNoteInput').focus(), 100);
+}
+
+// ─── CONFIG PRODUCT HELPERS ───────────────────────────────────────────────────
+function toggleSectionTwoCol(id) {
+  const s = state.sections.find(s => s.id === id);
+  if (s) s.twoCol = !s.twoCol;
+  saveState(); render(); renderConfigContent();
+}
+
+function addProductFromConfig(sectionId) {
+  const input = document.getElementById('newProd_' + sectionId);
+  if (!input) return;
+  const name = input.value.trim();
+  if (!name) return;
+  if (state.products.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+    alert(`"${name}" already exists.`); return;
+  }
+  state.products.push({ id: 'p_' + Date.now(), name, sectionId });
+  input.value = '';
+  saveState(); renderConfigContent();
+}
+
+function deleteProductFromConfig(productId) {
+  const p = state.products.find(p => p.id === productId);
+  if (!p) return;
+  if (!confirm(`Delete "${p.name}"?`)) return;
+  state.products = state.products.filter(pr => pr.id !== productId);
+  saveState(); renderConfigContent();
 }
 
 // ─── CONFIG MODAL ────────────────────────────────────────────────────────────
@@ -1491,28 +1429,50 @@ function renderConfigContent() {
 
   if (configTab === 'sections') {
     let html = `<div class="config-section">`;
-
     if (state.sections.length === 0) {
       html += `<p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">No sections yet. Add one below.</p>`;
     } else {
-      html += `<div class="config-list">`;
       state.sections.forEach((s, idx) => {
-        const productCount = state.products.filter(p => p.sectionId === s.id).length;
-        html += `<div class="config-row">
-          <span class="config-emoji">${s.emoji}</span>
-          <div class="config-info">
-            <span class="config-name">${escHtml(s.name)}</span>
-            <span class="config-sub">${productCount} product${productCount!==1?'s':''}</span>
-          </div>
-          <div class="config-actions">
-            <button class="cfg-btn" onclick="moveSection(${idx},-1)" ${idx===0?'disabled':''}>↑</button>
-            <button class="cfg-btn" onclick="moveSection(${idx},1)" ${idx===state.sections.length-1?'disabled':''}>↓</button>
-            <button class="cfg-btn" onclick="openEditSection('${s.id}')">✏️</button>
-            <button class="cfg-btn danger" onclick="deleteSection('${s.id}');renderConfigContent()">✕</button>
-          </div>
+        const products = state.products.filter(p => p.sectionId === s.id);
+        const twoCol = s.twoCol || false;
+        html += `<div class="config-row" style="flex-direction:column;align-items:stretch;gap:6px;margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:7px">
+            <span class="config-emoji">${s.emoji}</span>
+            <div class="config-info">
+              <span class="config-name">${escHtml(s.name)}</span>
+              <span class="config-sub">${products.length} product${products.length!==1?'s':''}</span>
+            </div>
+            <div class="config-actions">
+              <button class="cfg-btn" onclick="moveSection(${idx},-1)" ${idx===0?'disabled':''}>↑</button>
+              <button class="cfg-btn" onclick="moveSection(${idx},1)" ${idx===state.sections.length-1?'disabled':''}>↓</button>
+              <button class="cfg-btn ${twoCol?'active-btn':''}" onclick="toggleSectionTwoCol('${s.id}')" title="Two columns">${twoCol?'⊞':'⊟'}</button>
+              <button class="cfg-btn" onclick="openEditSection('${s.id}')">✏️</button>
+              <button class="cfg-btn danger" onclick="deleteSection('${s.id}');renderConfigContent()">✕</button>
+            </div>
+          </div>`;
+
+        // Products list
+        if (products.length > 0) {
+          html += `<div class="cfg-products">`;
+          products.forEach(p => {
+            html += `<div class="cfg-product-row">
+              <span class="cfg-product-name">${escHtml(p.name)}</span>
+              <button class="cfg-product-btn" onclick="openEditProduct('${p.id}')">✏️</button>
+              <button class="cfg-product-btn danger" onclick="deleteProductFromConfig('${p.id}')">✕</button>
+            </div>`;
+          });
+          html += `</div>`;
+        }
+
+        // Add product inline
+        html += `<div style="display:flex;gap:6px;padding-top:2px">
+          <input class="form-input" id="newProd_${s.id}" placeholder="Add product…" style="font-size:0.85rem;padding:7px 10px"
+            onkeydown="if(event.key==='Enter')addProductFromConfig('${s.id}')" />
+          <button class="cfg-add-btn" style="padding:7px 12px;font-size:0.82rem" onclick="addProductFromConfig('${s.id}')">+</button>
         </div>`;
+
+        html += `</div>`;
       });
-      html += `</div>`;
     }
 
     html += `<div class="config-add-form">
