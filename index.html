@@ -394,6 +394,7 @@
 <header>
   <h1>🛒 My Supermarket</h1>
   <div class="header-actions">
+    <button class="icon-btn" id="backupBtn" title="Download backup">💾</button>
     <button class="icon-btn" id="themeBtn" title="Change theme">🎨</button>
     <button class="icon-btn" id="configBtn" title="Configuration">⚙️</button>
     <button class="icon-btn" id="clearCheckedBtn" title="Clear list">🗑</button>
@@ -983,6 +984,7 @@ function clearFullList() {
   state.othersCollapsed = false;
   saveState(); render();
 }
+document.getElementById('backupBtn').onclick = exportBackup;
 document.getElementById('clearCheckedBtn').onclick = clearFullList;
 
 // ─── ADD ITEM ─────────────────────────────────────────────────────────────────
@@ -1221,7 +1223,6 @@ function renderPlaces() {
   }
 
   const donePlaces = [];
-  let html = '';
 
   state.places.forEach(place => {
     const items = place.items || [];
@@ -1618,8 +1619,36 @@ document.getElementById('themeModalCancel').onclick = () => {
   document.getElementById('themeModal').classList.remove('open');
 };
 
+// ─── DAILY AUTO-BACKUP ───────────────────────────────────────────────────────
+function exportBackup() {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `grocery-backup-${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  localStorage.setItem('lastBackupDate', date);
+}
+
+function checkDailyBackup() {
+  const today = new Date().toISOString().slice(0, 10);
+  const last = localStorage.getItem('lastBackupDate');
+  if (last !== today) {
+    // Only backup if there's something worth saving
+    if (state.sections.length > 0 || state.products.length > 0) {
+      setTimeout(exportBackup, 1500); // slight delay so app renders first
+    }
+  }
+}
+
 // ─── INIT ────────────────────────────────────────────────────────────────────
 render();
+checkDailyBackup();
 
 // ─── SERVICE WORKER ───────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
